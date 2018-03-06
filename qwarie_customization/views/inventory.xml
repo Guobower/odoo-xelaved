@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!--=====================================================================
+        === MODEL: Inventory (inventory.inventory) ==============================
+        ======================================================================-->
+        <!-- Inventory Kanban -->
+        <record model="ir.ui.view" id="view_inventory_kanban">
+            <field name="name">inventory.kanban</field>
+            <field name="model">inventory.inventory</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_mobile">
+                    <field name="name"/>
+                    <field name="quantity"/>
+                    <field name="write_date"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <h2 style="font-size:24px;"><t t-esc="record.name.value"/></h2>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <strong>Quantity: </strong><t t-esc="record.quantity.value"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <strong>Last Updated: </strong><t t-esc="record.write_date.value"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- Inventory Tree -->
+        <record model="ir.ui.view" id="view_inventory_tree">
+            <field name="name">inventory.tree</field>
+            <field name="model">inventory.inventory</field>
+            <field name="arch" type="xml">
+                <tree string="Inventory">
+                    <field name="name"/>
+                    <field name="quantity"/>
+                    <field name="write_date" string="Last Updated"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Inventory Filters -->
+        <record model="ir.ui.view" id="inventory_search">
+            <field name="name">inventory_search</field>
+            <field name="model">inventory.inventory</field>
+            <field name="arch" type="xml">
+                <search string="Inventory">
+                    <field name="name"/>
+                    <filter string="SIMs" domain="[('name','ilike', 'sim')]" help="Show all SIMs inventory Items"/>
+                </search>
+            </field>
+        </record>
+        
+        <!-- Inventory Form -->
+        <record model="ir.ui.view" id="view_inventory_form">
+            <field name="name">inventory.form</field>
+            <field name="model">inventory.inventory</field>
+            <field name="arch" type="xml">
+                <form string="Inventory">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1><field name="name"/></h1>
+                        </div>
+                        <group>
+                            <field name="quantity"/>
+                            <field name="value" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <label for="description"/>
+                        <field name="description"/>
+                        <notebook>
+                            <page name="stock" string="Stock">
+                                <field name="stock_ids" widget="one2many_list" context="{'default_inventory_id': context.get('inventory_id', active_id)}"/>
+                            </page>
+                            <page name="components" string="Components">
+                                <field name="subitems_ids">
+                                    <tree create="false">
+                                        <field name="name"/>
+                                        <field name="serial_ids_values"/>
+                                        <field name="quantity"/>
+                                        <field name="value" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="currency_id" invisible="1"/>
+
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="notes" string="Notes">
+                                <field name="notes"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter" groups="base.qwarie_basic">
+                        <field name="message_follower_ids" widget="mail_followers" groups="base.qwarie_basic"/>
+                        <field name="message_ids" widget="mail_thread" groups="base.qwarie_basic"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- Inventory Components form -->
+        <record model="ir.ui.view" id="view_inventory_subitem_form">
+            <field name="name">inventory.subitem.form</field>
+            <field name="model">inventory.subitem</field>
+            <field name="arch" type="xml">
+                <form string="Inventory Components">
+                    <sheet>
+                        <group>
+                            <field name="item_id"/>
+                            <field name="value" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="quantity"/>
+                        </group>
+                        <field name="serial_ids">
+                            <tree string="Serials">
+                                <field name="name"/>
+                                <field name="value" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="value_ids"/>
+                            </tree>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Inventory Stock Tree -->
+        <record model="ir.ui.view" id="view_stock_tree">
+            <field name="name">inventory.stock.tree</field>
+            <field name="model">inventory.stock</field>
+            <field name="arch" type="xml">
+                <tree string="Stock">
+                    <field name="name"/>
+                    <field name="parent_id"/>
+                    <field name="value_ids"/>
+                    <field name="stock_subitems_ids_values"/>
+                    <field name="value" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="currency_id" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Inventory Stock Form -->
+        <record model="ir.ui.view" id="view_stock_form">
+            <field name="name">inventory.stock.form</field>
+            <field name="model">inventory.stock</field>
+            <field name="arch" type="xml">
+                <form string="Stock">
+                    <sheet>
+                        <group>
+                            <field name="inventory_id" invisible="1"/>
+                            <field name="name"/>
+                            <field name="value" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="stock_subitems_value" widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'invisible':[('stock_subitems_ids', '=', [])]}"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="parent_id" domain="[('id', '!=', inventory_id)]"/>
+                            <field name="parent_stock_id" domain="[('inventory_id', '=', parent_id)]" attrs="{'invisible':[('parent_id', '=', False)]}"/>
+                        </group>
+                         <notebook>
+                            <page name="stock" string="Attributes">
+                                <div class="oe_horizontal_separator oe_clear ">Attributes</div>
+                                <field name="attribute_line_ids"/>
+                            </page>
+                            <page name="components" string="Components" attrs="{'invisible':[('stock_subitems_ids', '=', [])]}">
+                                <div class="oe_horizontal_separator oe_clear">Stock Components</div>
+                                <field name="stock_subitems_ids" >
+                                    <tree>
+                                        <field name="item_name" />
+                                        <field name="name"/>
+                                        <field name="value_ids"/>
+                                        <field name="currency_id" invisible="1"/>
+                                        <field name="value" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Inventory Stock Tree -->
+        <record model="ir.ui.view" id="view_inventory_stock_attribute_line_tree">
+            <field name="name">inventory.stock.attribute.line.tree</field>
+            <field name="model">inventory.stock.attribute.line</field>
+            <field name="arch" type="xml">
+                <tree string="Attributes" editable="bottom">
+                    <field name="attribute_id"/>
+                    <field name="value"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Inventory Stock Form -->
+        <record model="ir.ui.view" id="view_inventory_stock_attribute_line_form">
+            <field name="name">inventory.stock.attribute.line.form</field>
+            <field name="model">inventory.stock.attribute.line</field>
+            <field name="arch" type="xml">
+                <form string="Attributes">
+                    <sheet>
+                        <group string="Attributes">
+                            <field name="stock_id" context="{'default_stock_id': context.get('stock_id', active_id)}"/>
+                            <field name="attribute_id"/>
+                            <field name="value"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Inventory Stock Tree -->
+        <record model="ir.ui.view" id="view_inventory_stock_attribute_form">
+            <field name="name">inventory.stock.attribute.form</field>
+            <field name="model">inventory.stock.attribute</field>
+            <field name="arch" type="xml">
+                <form string="Inventory Stock Attributes">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                        </group>
+                        <field name="attribute_line_ids">
+                            <tree string="Attributes Lines">
+                                <field name="stock_id"/>
+                                <field name="attribute_id"/>
+                                <field name="value"/>
+                            </tree>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === WINDOW ACTIONS(ir.actions.act_window) ===============================
+        ======================================================================-->
+        <!-- Inventory Menu Action. -->
+        <!-- Shows all items in Inventory -->
+        <record model="ir.actions.act_window" id="base.view_inventory">
+            <field name="name">Inventory</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">inventory.inventory</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="help" type="html">
+                <p>This is a list of all Inventory Items.</p>
+            </field>
+        </record>
+
+        <!-- Inventory Stock Attributes Action. -->
+        <!-- Shows all Inventory stock attributes  -->
+        <record model="ir.actions.act_window" id="base.view_inventory_stock_attributes">
+            <field name="name">Inventory Stock Attributes</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">inventory.stock.attribute</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p>Inventory Stock Attributes</p>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MENU ITEMS (ir.ui.menu) =============================================
+        ======================================================================-->
+        <menuitem id="base.inventory" name="Inventory " icon="fa-calendar" web_icon="project,static/description/icon.png" sequence="30" groups="base.inventory_management"/>
+        <menuitem action="base.view_inventory" id="base.menu_inventory" name="Inventory" parent="base.inventory" sequence="1" groups="base.inventory_management"/>
+        <menuitem id="base.menu_inventory_stock" name="Stock" parent="base.inventory" sequence="2" groups="base.group_no_one"/>
+        <menuitem action="base.view_inventory_stock_attributes" id="base.menu_inventory_stock_attribute" name="Attributes" parent="base.menu_inventory_stock" sequence="2" groups="base.inventory_management"/>
+    </data>
+</openerp>

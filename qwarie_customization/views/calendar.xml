@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!--=====================================================================
+        === MODEL: Calendar Event (calendar.event) ==============================
+        ======================================================================-->
+        <!-- Calendar Event Form -->
+        <record model="ir.ui.view" id="qwarie_view_calendar_event_form">
+            <field name="name">qwarie_view_calendar_event_form</field>
+            <field name="model">calendar.event</field>
+            <field name="inherit_id" ref="calendar.view_calendar_event_form"/>
+            <field name="arch" type="xml">
+                <field name="allday" position="after">
+                    <field name="qw_event_id"/>
+                </field>
+            </field>
+        </record>
+
+        <!-- Calendar Event Form (popup) -->
+        <record model="ir.ui.view" id="qwarie_view_calendar_event_form_popup">
+            <field name="name">view_calendar_event_form_popup</field>
+            <field name="model">calendar.event</field>
+            <field name="inherit_id" ref="calendar.view_calendar_event_form_popup"/>
+            <field name="arch" type="xml">
+                <field name="partner_ids" position="before">
+                    <field name="qw_event_id"/>
+                </field>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MENU ITEMS (ir.ui.menu) =============================================
+        ======================================================================-->
+        <!-- Calendar Menu rearrangement -->
+        <record model="ir.ui.menu" id="calendar.mail_menu_calendar">
+            <field name="sequence">1</field>
+        </record>
+
+    </data>
+</openerp>

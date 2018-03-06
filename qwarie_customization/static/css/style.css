@@ -1,0 +1,109 @@
+.navbar {
+    background: #292D36;
+}
+#footer {
+    background: #292D36;
+    padding: 20px 0;
+}
+#footer div.row ul {
+    list-style: none;
+    padding:0;
+    margin:0;
+}
+#footer div.row ul li {
+    text-decoration: none;
+    padding-left: 1em;
+    text-indent: -.7em;
+}
+#footer div.row li:before {
+    content: "• ";
+    color: #82C8C8;
+}
+#footer div.row li, #footer div.row li a{
+    line-height: 20px;
+    margin-top: 10px;
+    padding: 5px 0 5px 13px;
+    text-align: left;
+    color: #7c818b
+}
+#footer div.row li:nth-child(2) {
+    background-position: 0 8px;
+    border-top: medium none;
+    margin-top: 0;
+    padding-top: 5px;
+}
+#footer div.row li:nth-child(2) {
+    border-top: 1px solid #3f424a;
+}
+.custom-copyright {
+    color: #daede2;
+    font-weight: 500;
+    text-transform: uppercase;
+    padding: 20px;
+    text-align: center;
+}
+.navbar a:hover, #footer a:hover, #footer li:hover {
+    text-decoration: none;
+    color: #82C8C8 !important;
+}
+header a.navbar-brand img {
+    padding: 5px 0;
+}
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {
+    background-color: #F3F3F3;
+opacity: 1; color:#000000; }
+
+div.quiz-mark-red {
+    font-size:30px;
+    color:red;
+}
+span.quiz-mark-red {
+    padding-left: 10px;
+    font-size: 14px;
+    color:red;
+}
+div.quiz-mark-green {
+    font-size:30px;
+    color:#008500;
+}
+span.quiz-mark-green {
+    padding-left: 10px;
+    font-size: 14px;
+    color:#008500;
+}
+.jumbotron {
+    background-color: #dcdee4;
+}
+.jumbotron > h1:nth-child(1) {
+    font-size: 40px;
+    font-weight: 600;
+}
+input[name="name"], input[name="email"] {
+    margin-bottom: 10px;
+    margin-left: 10px;
+}
+input[name="name"] {
+    margin-top: 20px;
+}
+input[name="email"] {
+    margin-left: 11px;
+    margin-bottom: 30px;
+}
+.o_note_small {
+    font-size: 16px !important;
+}
+@media print {
+    .quiz-mark-red {
+        color: red !important;
+    }
+    a[href*="action=survey.action_survey_form"] {
+        display: none;
+    }
+
+}
+.xs-6 {
+    width: 50%;
+    line-height: 70%;
+    height: 2000px;
+    color: red !important;
+  }

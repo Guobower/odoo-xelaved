@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+    <!--=====================================================================
+    === MODEL: Sales Order Report (sale.order.report)(pivot and graph view) =====================================
+    ======================================================================-->
+    <!-- Pivot view -->
+    <record id="view_sale_order_report_pivot" model="ir.ui.view">
+         <field name="name">sale.order.report.pivot</field>
+         <field name="model">sale.order.report</field>
+         <field name="arch" type="xml">
+             <pivot string="Commission Pivot Analysis">
+                 <field name="date_order2" interval="month" type="col"/>
+                 <field name="partner2_id" type="row"/>
+                 <field name="sale_commission_store2" type="measure"/>
+             </pivot>
+         </field>
+    </record>
+    <!-- Graph view -->
+    <record id="view_sale_order_report_graph" model="ir.ui.view">
+         <field name="name">sale.order.report.graph</field>
+         <field name="model">sale.order.report</field>
+         <field name="arch" type="xml">
+             <graph string="Commission Analysis">
+                 <field name="partner2_id"/>
+                 <field name="sale_commission_store2" type="measure"/>
+             </graph>
+         </field>
+    </record>
+
+    <!-- Favorites button (aka filters) -->
+    <record id="filter_commission_salespersons" model="ir.filters">
+        <field name="name">Commission Won By Salespersons</field>
+        <field name="model_id">sale.order.report</field>
+        <field name="domain">[]</field>
+        <field name="user_id" eval="False"/>
+        <field name="context">{'group_by': ['user2_id'], 'col_group_by': ['date_order2:month'], 'measures': ['sale_commission_store2']}</field>
+    </record>
+    <record id="filter_commission_customer" model="ir.filters">
+        <field name="name">Commission Won By Customer</field>
+        <field name="model_id">sale.order.report</field>
+        <field name="domain">[]</field>
+        <field name="user_id" eval="False"/>
+        <field name="context">{'group_by': ['partner2_id'], 'col_group_by': ['date_order2:month'], 'measures': ['sale_commission_store2']}</field>
+    </record>
+    <record id="filter_commission_commissions_won_per_team" model="ir.filters">
+        <field name="name">Commission Won Per Team</field>
+        <field name="model_id">sale.order.report</field>
+        <field name="domain">[]</field>
+        <field name="user_id" eval="False"/>
+        <field name="context">{'group_by': ['team2_id'], 'col_group_by': ['date_order2:month'], 'measures': ['sale_commission_store2']}</field>
+    </record>
+    <record id="filter_commission_country" model="ir.filters">
+        <field name="name">Commission Won By Country</field>
+        <field name="model_id">sale.order.report</field>
+        <field name="user_id" eval="False"/>
+        <field name="domain">[]</field>
+        <field name="context">{'col_group_by': ['date_order2:month'], 'group_by': ['country2_id']}</field>
+    </record>
+    <record id="filter_customer_type" model="ir.filters">
+        <field name="name">Commission Won By Customer Type</field>
+        <field name="model_id">sale.order.report</field>
+        <field name="user_id" eval="False"/>
+        <field name="domain">[]</field>
+        <field name="context">{'col_group_by': ['date_order2:month'], 'group_by': ['customer_type2']}</field>
+    </record>
+    <!-- Search view -->
+    <record id="view_sale_order_report_search" model="ir.ui.view">
+        <field name="name">sale.order.report.search</field>
+        <field name="model">sale.order.report</field>
+        <field name="arch" type="xml">
+            <search string="Commission Analysis">
+                <filter string="My Commission" name="my_commission" domain="[('user2_id', '=', uid)]"/>
+                <field name="date_order2"/>
+                <filter string="This Week" name="thisweek" domain="['&amp;', ('date_order2', '&gt;=', ((context_today()-datetime.timedelta(days=7)).strftime('%Y-%m-%d'))), ('date_order2', '&lt;=', ((context_today()).strftime('%Y-%m-%d')))]"/>
+                <filter string="This Month" name="thismonth" domain="['|', ('date_order2', '=', False), '&amp;',('date_order2','&lt;', time.strftime('%Y-%m-%d')),('date_order2','&gt;=',time.strftime('%%Y-%m-01'))]"/>
+                <filter string="Last Month" name="lastmonth" domain="['|', ('date_order2', '=', False), '&amp;',('date_order2','&gt;', ((context_today()-relativedelta(months=1)).strftime('%Y-%m-01'))),('date_order2','&lt;',time.strftime('%%Y-%m-01'))]"/>
+                <filter string="This Year" name="thisyear" domain="['|', ('date_order2', '=', False), '&amp;',('date_order2','&lt;=', time.strftime('%%Y-12-31')),('date_order2','&gt;=',time.strftime('%%Y-01-01'))]" help="Journal invoices with period in current year"/>
+                <separator/>
+                <field name="partner2_id" operator="child_of"/>
+                <field name="user2_id" />
+                <group expand="1" string="Group By">
+                    <filter string="Partner" name="partner2_id" context="{'group_by':'partner2_id','sale_commission_store2':True}"/>
+                    <filter string="Sales Team" context="{'group_by':'team2_id'}"/>
+                    <filter string="Country" context="{'group_by':'country2_id'}" />
+                    <filter string="Salesperson" name='user' context="{'group_by':'user2_id'}"/>
+                    <filter string="Company" context="{'group_by':'company2_id'}" groups="base.group_multi_company"/>
+                    <separator orientation="vertical" />
+                    <filter string="Date" context="{'group_by':'date_order2'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+        <!--=====================================================================
+        === WINDOW ACTIONS(ir.actions.act_window) ===============================
+        ======================================================================-->
+    <record id="action_sale_order_report_all_supp" model="ir.actions.act_window">
+        <field name="name">Commission Analysis</field>
+        <field name="res_model">sale.order.report</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="context">{'group_by': ['user2_id', 'partner2_id'], 'col_group_by': ['date_order2'], 'measures': ['sale_commission_store2']}</field>
+        <field name="search_view_id" ref="view_sale_order_report_search"/>
+        <field name="help">From this report, you can have an overview of the amount commission from your vendors. The search tool can also be used to personalise your Commission reports and so, match this analysis to your needs.</field>
+    </record>
+    <record id="action_sale_order_report_all" model="ir.actions.act_window">
+        <field name="name">Commission Analysis</field>
+        <field name="res_model">sale.order.report</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="context">{'group_by': ['user2_id', 'partner2_id'], 'col_group_by': ['date_order2'], 'measures': ['sale_commission_store2']}</field>
+        <field name="search_view_id" ref="view_sale_order_report_search"/>
+        <field name="help">From this report, you can have an overview of the amount commission to your customers. The search tool can also be used to personalise your Commission reports and so, match this analysis to your needs.</field>
+    </record>
+    <!-- Commission Menuitem -->
+    <menuitem name="Commission" action="action_sale_order_report_all" id="menu_action_sale_order_report_all" parent="base.menu_sale_report" sequence="20"/>
+
+    <act_window
+        id="act_sale_order_partner_relation"
+        name="Monthly Turnover"
+        context="{'group_by': ['user2_id', 'partner2_id'], 'col_group_by': ['date_order2'], 'measures': ['sale_commission_store2']}"
+        res_model="sale.order.report"
+        src_model="res.partner"
+        view_mode="graph"/>
+</data>
+</openerp>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <!-- Stray customization. Not worth creating new files for the models these come from -->
+
+        <!--=====================================================================
+        === MENU ITEMS (ir.ui.menu) =============================================
+        ======================================================================-->
+        <!-- Discuss Menu - restrict access -->
+        <record model="ir.ui.menu" id="mail.mail_channel_menu_root_chat">
+            <field name="groups_id" eval="[(6,0, [ref('base.group_erp_manager')])]"/>
+        </record>
+
+        <!-- Contact Menu - change order -->
+        <record model="ir.ui.menu" id="mail.menu_contacts">
+            <field name="sequence">3</field>
+            <field name="groups_id" eval="[(6,0, [ref('base.group_user')])]"/>
+        </record>
+
+        <!--=====================================================================
+        === SERVER ACTIONS (ir.actions.act_window) ==============================
+        ======================================================================-->
+        <!-- Server action which parses case@qwarie.com incoming emails -->
+        <record model="ir.actions.server" id="add_to_mailing_list">
+            <field name="name">Add to Mailing List</field>
+            <field name="model_id" ref="mass_mailing.model_mail_mass_mailing_contact"/>
+            <field name="code">
+                self.add_to_mailing_list(cr, uid, context.get('active_ids', []), context=context)
+            </field>
+        </record>
+    </data>
+</openerp>

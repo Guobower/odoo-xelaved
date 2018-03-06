@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <!--=====================================================================
+        === TEMPLATES ===========================================================
+        ======================================================================-->
+        <!-- Web("backend") - which can be seen by logged in users -->
+
+        <!-- Web Layout -->
+        <template id="web_layout" name="custom_web_layout" inherit_id="web.layout">
+            <!-- Change title -->
+            <xpath expr="//title" position="replace">
+                <title>Qwarie CRM</title>
+            </xpath>
+            <!-- Change favicon -->
+            <xpath expr="//link[@rel='shortcut icon']" position="replace">
+                <link rel="shortcut icon" href="/qwarie_customization/static/img/favicon.ico" type="image/x-icon"/>
+            </xpath>
+        </template>
+
+        <!-- Web Layout Assets -->
+        <template id="assets_backend" name="custom_assets_backend" inherit_id="web.assets_backend">
+            <!-- Custom js files -->
+            <xpath expr="script[last()]" position="after">
+                <script type="text/javascript" src="/qwarie_customization/static/js/misc.js"></script>
+                <script type="text/javascript" src="/qwarie_customization/static/js/chatter.js"></script>
+                <script type="text/javascript" src="/qwarie_customization/static/js/base.js"></script>
+                <script type="text/javascript" src="/qwarie_customization/static/js/calendar.js"></script>
+                <!-- <script type="text/javascript" src="/qwarie_customization/static/js/list_view.js"></script> -->
+            </xpath>
+            <!-- Custom css files -->
+            <xpath expr="link[last()]" position="after">
+               <link rel="stylesheet" href="/qwarie_customization/static/css/base.css" type="text/css"></link>
+            </xpath>
+        </template>
+
+        <!-- Web Layout Left Menu(sidebar) -->
+        <template id="menu_secondary" name="custom_menu_secondary" inherit_id="web.menu_secondary">
+            <!-- Remove Odoo copyright from footer -->
+            <xpath expr="//div[@class='oe_footer']" position="replace"/>
+        </template>
+
+        <!-- Webclient Bootstrap -->
+        <!-- Give access to custom qwarie portal group users to the navigation menus -->
+        <template id="webclient_bootstrap" name="Webclient Bootstrap" inherit_id="web.webclient_bootstrap">
+            <xpath expr="//nav[@id='oe_main_menu_navbar']" position="replace">
+                <nav id="oe_main_menu_navbar" class="navbar navbar-inverse" role="navigation" groups="base.group_user,base.group_portal,base.qwarie_portal">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                    </div>
+                    <div class="navbar-collapse collapse" id="oe_main_menu_placeholder">
+                        <t t-call="web.menu"/>
+                    </div>
+                </nav>
+            </xpath>
+			<xpath expr="//div[@class='openerp openerp_webclient_container oe_webclient']" position="replace">
+                <div class="openerp openerp_webclient_container oe_webclient">
+                    <div class="oe_leftbar" groups="base.group_user,base.group_portal,base.qwarie_portal">
+                        <t t-call="web.menu_secondary"/>
+                    </div><div class="oe_application"/>
+                </div>
+			</xpath>
+		</template>
+        <template id="user_navbar_qwarie" inherit_id="website.user_navbar" groups="base.group_user">
+            <xpath expr="//a[@class='dropdown-toggle hidden-xs']" position="replace">
+                <a href="#" class="dropdown-toggle hidden-xs" data-toggle="dropdown"><i class="fa fa-th-large"></i> CRM Menu<b class="caret"/></a>
+            </xpath>
+        </template>
+        <template id="reset_password_qwarie" inherit_id="auth_signup.reset_password">
+            <xpath expr="//div[@class='clearfix oe_login_buttons']" position="replace">
+                <div class="clearfix oe_login_buttons">
+                    <button type="submit" class="btn btn-primary pull-left">Reset Password</button>
+                </div>
+            </xpath>
+        </template>
+    </data>
+</openerp>

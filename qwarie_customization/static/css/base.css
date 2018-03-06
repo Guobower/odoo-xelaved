@@ -1,0 +1,67 @@
+@font-face {
+    font-family: "Linux Libertine G";
+    src: url('/qwarie_customization/static/css/LinLibertine_R_G.ttf')
+}
+@font-face {
+    font-family: "Linux Biolinum G";
+    src: url('/qwarie_customization/static/css/LinBiolinum_R_G.ttf')
+}
+.openerp .oe_list_content td.oe_number[data-field="price_subtotal"] {
+    text-align: center !important;
+}
+.event_notes th[data-id="create_date"], .event_notes th[data-id="create_uid"] {
+    width: 200px;
+}
+
+.email-survey-all {
+    float: right;
+    margin-top: 4px;    
+}
+
+.course_results > tbody > tr > td:first-child {
+    width: 80%;
+}
+
+.openerp .oe_list_content > tbody > tr > td[data-field="email_exam"],
+.openerp .oe_list_content > tbody > tr > td[data-field="email_feedback"]  {
+    text-align: center;
+}
+
+.openerp .oe_list_content > tbody > tr > td[data-field="email_exam"] > button.btn_txt,
+.openerp .oe_list_content > tbody > tr > td[data-field="email_feedback"] > button.btn_txt {
+    background: white;
+}
+.openerp .oe_list_content > tbody > tr > td[data-field="clipboard"] > button {
+    margin-top: 5px;
+}
+.openerp .oe_list_content > tbody > tr > td[data-field="print_results"] > button {
+    margin-top: 4px;
+}
+.openerp .oe_list_content > tbody > tr > td[data-field="clipboard"] > button > .fa-clipboard,
+.openerp .oe_list_content > tbody > tr > td[data-field="print_results"] > button > .fa-eye {
+    font-size: 17px;
+}
+div.oe_form_group_cell_travel_label {
+    width: 100%;
+    height: 30px;
+    border-right: 1px solid #ddd;
+    display: block;
+    position: relative;
+}
+div.oe_form_group_cell_travel_label > label {
+    font-weight: bold !important;
+}
+.openerp .oe_form_sheet_width {
+    max-width: 1260px;
+}
+#oe_snippets #o_left_bar #o_scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+#wrapwrap > main > div:first-child {
+    max-width: 800px;
+    margin: 0 auto;
+}
+.editor_enable #wrapwrap > main > div:first-child:after {
+    margin-left: 805px;
+}

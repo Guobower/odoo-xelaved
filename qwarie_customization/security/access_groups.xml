@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!--===========================================================
+        === Custom Access Groups Categories ===========================
+        ============================================================-->
+        <record model="ir.module.category" id="base.module_category_qwarie_customers">
+            <field name="name">Qwarie Customer Access</field>
+            <field name="sequence">0</field>
+            <field name="visible" eval="1" />
+        </record>
+        <record model="ir.module.category" id="base.module_category_qwarie_training">
+            <field name="name">Qwarie Training</field>
+            <field name="sequence">0</field>
+            <field name="visible" eval="1" />
+        </record>
+        <record model="ir.module.category" id="base.module_category_qwarie_sales">
+            <field name="name">Qwarie Sales</field>
+            <field name="sequence">0</field>
+            <field name="visible" eval="1" />
+        </record>
+
+        <!--===========================================================
+        === Qwarie Customer Category Groups and Rules =================
+        ============================================================-->
+        <record model="res.groups" id="base.qwarie_portal">
+            <field name="name">Qwarie Portal</field>
+            <field name="category_id" ref="base.module_category_qwarie_customers"/>
+        </record>
+        <record model="res.groups" id="base.qwarie_training_overseer">
+            <field name="name">Training Overseer</field>
+            <field name="category_id" ref="base.module_category_qwarie_customers"/>
+        </record>
+
+        <!-- Rules -->
+        <record id="event_event" model="ir.rule">
+            <field name="name">User Company Trainings</field>
+            <field name="model_id" ref="model_event_event"/>
+            <field name="groups" eval="[(4, ref('base.qwarie_portal'))]"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+            <field name="domain_force">
+                ['|', ('address_id.parent_id', '=', user.partner_id.parent_id.id), ('address_id', '=', user.partner_id.parent_id.id)]
+            </field>
+        </record>
+        <!-- Rules -->
+        <record id="training_exam_overseer" model="ir.rule">
+            <field name="name">User Company Exams</field>
+            <field name="model_id" ref="model_survey_survey"/>
+            <field name="groups" eval="[(4, ref('base.qwarie_training_overseer'))]"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+            <field name="domain_force">
+                ['|', 
+                    '|', ('customer_id', '=', user.partner_id.id), ('customer_id', '=', user.partner_id.parent_id.id),
+                    '&amp;', ('customer_id', 'in', [False, None]), ('type', 'not in', ['preliminary'])
+                ]
+            </field>
+        </record>
+        <record id="training_partner_overseer" model="ir.rule">
+            <field name="name">User Partner</field>
+            <field name="model_id" ref="model_res_partner"/>
+            <field name="groups" eval="[(4, ref('base.qwarie_training_overseer'))]"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+            <field name="domain_force">
+                ['|', '|', ('id', '=', user.partner_id.parent_id.id), ('id', '=', user.partner_id.id), ('parent_id', '=', user.partner_id.parent_id.id)]
+            </field>
+        </record>
+
+        <!--===========================================================
+        === Qwarie Customer Category Groups and Rules =================
+        ============================================================-->
+        <record model="res.groups" id="base.qwarie_basic">
+            <field name="name">Basic Access</field>
+            <field name="category_id" ref="base.module_category_qwarie_training"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record model="res.groups" id="base.qwarie_trainer">
+            <field name="name">Trainer</field>
+            <field name="category_id" ref="base.module_category_qwarie_training"/>
+            <field name="implied_ids" eval="[
+                    (4, ref('base.qwarie_basic')),
+                ]"/>
+        </record>
+        <record model="res.groups" id="base.qwarie_coordinator">
+            <field name="name">Training Coordinator</field>
+            <field name="category_id" ref="base.module_category_qwarie_training"/>
+            <field name="implied_ids" eval="[
+                    (4, ref('base.qwarie_trainer')),
+                    (4, ref('base.group_sale_salesman')),
+                    (4, ref('marketing.group_lead_automation_manager')),
+                    (4, ref('account.group_account_manager')),
+                    (4, ref('event.group_event_manager')),
+                    (4, ref('base.group_survey_manager')),
+                    (4, ref('mass_mailing.group_mass_mailing_user'))
+                ]"/>
+        </record>
+
+        <!-- Rules -->
+        <record id="event_notes" model="ir.rule">
+            <field name="name">Event Notes</field>
+            <field name="model_id" ref="qwarie_customization.model_event_notes"/>
+            <field name="groups" eval="[(4, ref('base.qwarie_trainer'), (4, ref('base.qwarie_coordinator')))]"/>
+            <field name="perm_read" eval="0"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="0"/>
+            <field name="perm_unlink" eval="0"/>
+            <field name="domain_force">
+                ['|', ('create_uid', '=', False), ('create_uid','=',user.id)]
+            </field>
+        </record>
+
+        <!--===========================================================
+        === Qwarie Sales Category Groups and Rules ====================
+        ============================================================-->
+        <record model="res.groups" id="base.qwarie_team_member">
+            <field name="name">Team Member</field>
+            <field name="category_id" ref="base.module_category_qwarie_sales"/>
+            <field name="implied_ids" eval="[
+                    (4, ref('base.group_user')),
+                    (4, ref('base.group_sale_salesman')),
+                    (4, ref('project.group_project_user')),
+                    (4, ref('account.group_account_manager')),
+                ]"/>
+        </record>
+        <record model="res.groups" id="base.qwarie_team_leader">
+            <field name="name">Team Leader</field>
+            <field name="category_id" ref="base.module_category_qwarie_sales"/>
+            <field name="implied_ids" eval="[
+                    (4, ref('base.qwarie_team_member')),
+                    (4, ref('base.group_sale_manager')),
+                    (4, ref('marketing.group_lead_automation_manager')),
+                    (4, ref('project.group_project_manager')),
+                    (4, ref('mass_mailing.group_mass_mailing_user')),
+                    (4, ref('base.group_survey_manager')),
+                    (4, ref('base.group_website_publisher')),
+                    (4, ref('base.group_erp_manager')),
+                    (4, ref('sale.group_analytic_accounting')),
+                    (4, ref('product.group_uom')),
+                    (4, ref('base.group_partner_manager')),
+                ]"/>
+        </record>
+        <!--===========================================================
+        === Qwarie Internal Groups ====================================
+        ============================================================-->
+        <record id="base.inventory_management" model="res.groups">
+            <field name="name">Inventory Management</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+        </record>
+        <!--===========================================================
+        ===Qwarie Portal User Slides===================================
+        ============================================================-->
+        
+        <record id="base.rule_slide_channel_public_qwarie" model="ir.rule">
+            <field name="name">Channel: Qwarie Public: published only</field>
+            <field name="model_id" ref="model_slide_channel"/>
+            <field name="groups" eval="[(4, ref('base.qwarie_portal'))]"/>
+            <field name="domain_force">[('website_published', '=', True)]</field>
+        </record>
+        
+        <record id="base.rule_slide_slide_public_qwarie" model="ir.rule">
+            <field name="name">Slide: Qwarie public: published only</field>
+            <field name="model_id" ref="model_slide_slide"/>
+            <field name="groups" eval="[(4,ref('base.qwarie_portal'))]"/>
+            <field name="domain_force">[('channel_id.website_published', '=', True), ('website_published', '=', True)]</field>
+        </record>
+        <record id="res_users_rule" model="ir.rule">
+            <field name="name">user rule</field>
+            <field name="model_id" ref="model_res_users"/>
+            <field name="groups" eval="[(4,ref('base.qwarie_portal'))]"/>
+            <field name="domain_force"></field>
+        </record>
+    </data>
+</openerp>

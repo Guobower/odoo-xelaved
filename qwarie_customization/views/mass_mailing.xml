@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!--=====================================================================
+        === MODEL: Mass Mailing Contact (mass_mailing.contact) ==================
+        ======================================================================-->
+        <!-- Mass Mailing List Tree -->
+        <record model="ir.ui.view" id="view_mail_mass_mailing_contact_tree">
+            <field name="name">mail.mass_mailing.contact.tree</field>
+            <field name="model">mail.mass_mailing.contact</field>
+            <field name="inherit_id" ref="mass_mailing.view_mail_mass_mailing_contact_tree"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="last_name"/>
+                </field>
+            </field>
+        </record>
+        
+        <!--=====================================================================
+        === Qweb Templates ======================================================
+        ======================================================================-->
+        <template id="page_view_email" name="View Email">
+            <title><t t-esc="subject"/></title>
+            <div t-raw="body_html"/>
+        </template>
+    </data>
+</openerp>

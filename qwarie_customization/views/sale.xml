@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!--=====================================================================
+        === MODEL: Sales Order (sale.order) =====================================
+        ======================================================================-->
+        <!-- Sales Order Form -->
+        <record model="ir.ui.view" id="view_order_form">
+            <field name="name">sale.order.form</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <field name="partner_id" position="after">
+                    <field string="Responsible" name="responsible_id"
+                        context="{'search_default_customer':partner_id, 'show_address': 0}"
+                        options='{"always_reload": True}'
+                        domain="[('customer', '=', True), ('commercial_partner_id', '=', partner_id)]"/>
+                </field>
+            </field>
+        </record>
+        <!--=====================================================================
+        === WINDOW ACTIONS(ir.actions.act_window) ===============================
+        ======================================================================-->
+        <!-- Products - Training Menu Action. -->
+        <!-- Shows all Training Products -->
+        <record model="ir.actions.act_window" id="crm_lead_action_course_products">
+            <field name="name">Products - Training</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.template</field>
+            <field name="view_type">tree</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="view_id" ref="product.product_template_kanban_view"/>
+            <field name="domain">[('name','ilike','course')]</field>
+            <field name="help" type="html">
+                <p>This is a list of all Training Products.</p>
+            </field>
+        </record>
+
+        <!-- Products - Investigations Menu Action. -->
+        <!-- Shows all Investigation Products -->
+        <record model="ir.actions.act_window" id="crm_lead_action_research_products">
+            <field name="name">Products - Investigations</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.template</field>
+            <field name="view_type">tree</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="view_id" ref="product.product_template_kanban_view"/>
+            <field name="domain">['|', ('name','ilike','research'), ('name','ilike','investigation')]</field>
+            <field name="help" type="html">
+                <p>This is a list of all Investigations Products.</p>
+            </field>
+        </record>
+        <!-- Create lead button -->
+        <record model="ir.ui.view" id="view_partner_property_form">
+            <field name="name">res.partner.form</field>
+            <field name="model">res.partner</field>
+            <field name="priority" eval="3"/>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <div name="button_box" position="inside">
+                    <button name="create_lead" string="Create Lead" class="oe_stat_button" type="object" icon="fa-clipboard" groups="base.group_sale_salesman">
+                    </button>
+                </div>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MENU ITEMS (ir.ui.menu) =============================================
+        ======================================================================-->
+        <menuitem id="crm_lead_menu_course_products" name="Products - Training" sequence="50"
+            parent="base.menu_sales" action="qwarie_customization.crm_lead_action_course_products" />
+
+        <menuitem id="crm_lead_menu_research_products" name="Products - Investigations" sequence="50"
+            parent="base.menu_sales" action="qwarie_customization.crm_lead_action_research_products" />
+        
+        <!-- Sale commission field  -->
+        <record id="view_order_form" model="ir.ui.view">
+            <field name="name">sale.order.form</field>
+            <field name="model">sale.order</field>
+            <field name="arch" type="xml">
+                <field name="payment_term_id" position="after">
+                    <field name="sale_commission_store" attrs="{'invisible':[('state', 'not in', ['sale', 'done'])]}"/>
+                    <field name="customer_type_store" invisible="1"/>
+                </field>
+            </field>
+        </record>
+        <!-- When a user adds a "Next Activity" in sales, it is automatically added to Calendar -->
+         <record model="ir.ui.view" id="crm_case_form_view_oppo2r">
+            <field name="name">Opportunities</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_form_view_oppor"/>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@class='o_row mr16']" position="inside">
+                    <field name="crm_activity_id2" invisible="1"/>
+                </xpath>
+            </field>
+        </record>
+        <!-- Commission percentage based on customer type New/Recurrent/Loyal -->
+        <record id="res_users_view_form" model="ir.ui.view">
+            <field name="name">res.users.commision</field>
+            <field name="model">res.users</field>                
+            <field name="inherit_id" ref="base.view_users_simple_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet" position="inside">
+                    <notebook>
+                        <page string="Commission" edit="True">
+                            <group class="o_label_nowrap">
+                                <field name="new_customer" string="New Customer" widget="percentage"/>
+                                <field name="recurrent_customer" string="Recurrent Customer" widget="percentage"/>
+                                <field name="loyal_customer" string="Loyal Customer" widget="percentage"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</openerp>

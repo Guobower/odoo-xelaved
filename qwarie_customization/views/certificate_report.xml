@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="paperformat_certificate" model="report.paperformat">
+            <field name="name">Certificate</field>
+            <field name="default" eval="True"/>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">0</field>
+            <field name="margin_bottom">0</field>
+            <field name="margin_left">0</field>
+            <field name="margin_right">0</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">35</field>
+            <field name="dpi">96</field>
+        </record>
+        <report 
+            id="report_certificate"
+            model="survey.user_input"
+            string = "Training Certificates"
+            report_type="qweb-pdf"
+            name="qwarie_customization.training_certificate"
+            attachment = "('Qwarie_'+object.participant_name.replace(' ','_')+'_training_certificate'+'.pdf')"
+            file="qwarie_customization.training_certificate"
+            paperformat="qwarie_customization.paperformat_certificate"
+        />
+        <template id="training_certificate">
+            <body style="height:297mm;width:210mm;font-family: arial;font-size:20px;padding: 0;margin: 0;">
+                <t t-foreach="docs" t-as="o">
+                    <div class="page" style="line-height: 1.2;">
+                        <style type="text/css">
+                                <![CDATA[
+                                @font-face {
+                                    font-family: "Linux Libertine G";
+                                    src: url('/qwarie_customization/static/css/LinLibertine_R_G.ttf')
+                                }
+                                @font-face {
+                                    font-family: "Linux Biolinum G";
+                                    src: url('/qwarie_customization/static/css/LinBiolinum_R_G.ttf')
+                                }
+                            ]]>
+                        </style>
+                        <div class="row">
+                            <body style="height:297mm;width:210mm;font-family: arial;font-size:20px;">
+                                <header style="width:100%;margin:0 0 0 0">
+                                    <img style="width:100%;height:auto;" src="/qwarie_customization/static/img/certificates-header-full.png"/>
+                                </header>
+                                <div>
+                                    <br/>
+                                    <h1 style="text-align:center;font-weight:bold;font-size:60px;color:rgb(42,109,125);margin:75px 0 0 0;font-family:Linux Libertine G;">CERTIFICATE </h1>
+                                    <h1 style="text-align:center;font-weight:bold;font-size:60px;color:rgb(42,109,125);margin:0 0 0 0;font-family:Linux Libertine G;">of Training</h1>
+                                </div>
+                                <div style="font-size:25px;color:rgb(54,54,54);text-align:center;margin:96px 0 0 0;font-family:'Linux Biolinum G';">
+                                    <p>This is to certify that</p>
+                                </div>
+                                <div style="margin: 20px 0;">
+                                    <h1 style="text-align:center;font-weight:bold;font-size:60px;color:rgb(42,109,125);margin:30px 0;text-transform:uppercase; font-family:'Linux Libertine G';"><span t-field="o.participant_name"/></h1>
+                                </div>
+                                <div style="height:110px;font-size:25px;text-align:center;margin:10 130 100 130;font-family:'Linux Biolinum G';color: rgb(54, 54, 54);">
+                                    has attended a 
+                                    <t t-if="o.event_id.duration == 0">1</t>
+                                    <t t-if="o.event_id.duration != 0">
+                                        <span t-field="o.event_id.duration"/>
+                                    </t> 
+                                    day course in 
+                                    <span t-field="o.event_id.training_subject"/> 
+                                    for
+                                    <span t-field="o.event_id.customer_id"/>
+                                    <t t-if="o.event_id.month_begin == o.event_id.month_end">
+                                        , held on the 
+                                        <t t-if="o.event_id.day_begin == o.event_id.day_end">
+                                            <span t-field="o.event_id.day_begin"/>
+                                        </t>
+                                        <t t-if="o.event_id.day_begin != o.event_id.day_end">
+                                            <span t-field="o.event_id.day_begin"/> - 
+                                            <span t-field="o.event_id.day_end"/>
+                                        </t>
+                                        of 
+                                        <span t-field="o.event_id.month_begin"/>
+                                        <span t-field="o.event_id.year_end"/>
+                                    </t>
+                                    <t t-if="o.event_id.month_begin != o.event_id.month_end">
+                                        , held on the 
+                                        <span t-field="o.event_id.day_begin"/> of
+                                        <span t-field="o.event_id.month_begin"/> -
+                                        <span t-field="o.event_id.day_end"/> of
+                                        <span t-field="o.event_id.month_end"/>
+                                        <span t-field="o.event_id.year_end"/>
+                                    </t>
+                                </div>
+                                <div style="font-size:15px;text-align:center;font-family:'Linux Biolinum G';color: rgb(54, 54, 54);">
+                                    <table style="margin:130 130 91.5 130;text-align:center;font-family:'Linux Biolinum G';">
+                                        <tr>
+                                            <td style="align:center;margin:0 0 10 0">
+                                                <img style="width:50%;height:auto" src="/qwarie_customization/static/img/cpd-logo-certificates-size.png"/>
+                                            </td>
+                                            <td style="align:center;margin:0 0 10 0">
+                                                <img style="width:55%;height:auto" src="/qwarie_customization/static/img/tony-signature.png"/>
+                                            </td>
+                                            <td style="align:center;margin:0 0 10 0">
+                                                <img style="width:85%;height:auto;" src="/qwarie_customization/static/img/osira-certificates-size.png"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="align:center;">
+                                                Certified by the CPD Certification <br/> Service in the UK as consisting of <br/> 
+                                                <t t-if="o.event_id.duration_h == 0">7</t><t t-if="o.event_id.duration_h != 0"><span t-field="o.event_id.duration_h"/></t> hours training credits <br/> (CPD Membership Number 10168)
+                                            </td>
+                                            <td style="align:center;">
+                                                <img style="width:200px;height:auto;" src="/qwarie_customization/static/img/hr.png"/><br/>
+                                                 CERTIFIED BY <br/> QWARIE EXECUTIVE TRAINING OFFICER <br/> TONY BENNET MSC
+                                            </td>
+                                            <td style="align:center;">
+                                                Recognized as <t t-if="o.event_id.duration_h == 0">7</t><t t-if="o.event_id.duration_h != 0"><span t-field="o.event_id.duration_h"/></t>
+                                                 hours of OSIRA <br/> professional training credits
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <footer style="width:100%;margin:0 0 0 0">
+                                    <img style="width:100%;" src="/qwarie_customization/static/img/certificates-footer.png"/>
+                                </footer>
+                            </body>
+                        </div>
+                    </div>
+                </t> 
+            </body>
+        </template>
+    </data>
+</openerp>

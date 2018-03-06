@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!-- Video Tracker by user -->
+        <record id="view_user_link_tracker_form" model="ir.ui.view">
+            <field name="name">link.tracker.form</field>
+            <field name="model">link.tracker</field>
+            <field name="inherit_id" ref="link_tracker.view_link_tracker_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet" position="inside">
+                    <notebook>
+                        <page string="List of Clicks">
+                            <field name="track_user_ids" mode="tree" editable="bottom">
+                                <tree editable="bottom">
+                                    <field name="user_id"/>
+                                    <field name="ip"/>
+                                    <field name="click_date"/>
+                                    <field name="link_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- ==========================================================================
+        =========Edit 403 Forbidden page===============================================
+        =========================================================================== -->
+        <template id="403" inherit_id="website.403">
+            <xpath expr="//t[@t-call='website.layout']" position="replace">
+                <t t-call="web.login_layout">
+                    <h1 class="mt32"> Access Forbidden</h1>
+                    <p class="mb16">The page you were looking for, requires a login:</p>
+                    <form class="oe_login_form" role="form" t-attf-action="/web/login{{ '?debug' if debug else '' }}" method="post" onsubmit="this.action = this.action + location.hash">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <div class="form-group field-db" t-if="databases and len(databases) &gt; 1">
+                            <label for="db" class="control-label">Database</label>
+                            <div class="input-group">
+                                <input type="text" name="db" t-att-value="request.db" id="db" class="form-control" required="required" readonly="readonly"/>
+                                <span class="input-group-btn">
+                                <a href="/web/database/selector" class="btn btn-default">Select <i class="fa fa-database"></i></a>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="form-group field-login">
+                            <label for="login" class="control-label">Email</label>
+                            <input type="text" name="login" t-att-value="login" id="login" class="form-control" required="required" autofocus="autofocus" autocapitalize="off"/>
+                        </div>
+
+                        <div class="form-group field-password">
+                            <label for="password" class="control-label">Password</label>
+                            <input type="password" name="password" id="password" class="form-control" required="required" autocomplete="current-password" t-att-autofocus="'autofocus' if login else None" maxlength="4096"/>
+                        </div>
+
+                        <p class="alert alert-danger" t-if="error">
+                            <t t-esc="error"/>
+                        </p>
+                        <p class="alert alert-success" t-if="message">
+                            <t t-esc="message"/>
+                        </p>
+                        <input type="hidden" name="redirect" t-att-value="request.httprequest.path"/>
+                        <div class="clearfix oe_login_buttons">
+                            <button type="submit" class="btn btn-primary">Log in</button>
+                        </div>
+                    </form>
+                    <p class="mt32">Or, maybe you were looking for one of these pages?</p>
+                    <ul>
+                        <li><a href="/">Homepage</a></li>
+                        <li><a href="/page/website.contactus/">Contact Us</a></li>
+                    </ul>
+                </t>
+            </xpath>
+        </template>
+
+        <!-- ==========================================================================
+        =========Add Attach a file field===============================================
+        =========================================================================== -->
+        <record id="view_slide_slide_form_video" model="ir.ui.view">
+            <field name="name">slide.slide.form</field>
+            <field name="model">slide.slide</field>
+            <field name="inherit_id" ref="website_slides.view_slide_slide_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='image']" position="replace">
+                    <field name="image" widget="image" class="oe_avatar" options='{"preview_image": "image_thumb"}' readonly="0"/>
+                </xpath>
+                <xpath expr="//field[@name='url']" position="after">
+                    <label for="attachment_ids"/>
+                    <div>
+                        <field name="attachment_ids"  widget="many2many_binary" string="Attach a file" colspan="3"/>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- ==========================================================================
+        =========Add "Upload video" format=============================================
+        =========================================================================== -->
+        <template id="slides_channel_header_custom" inherit_id="website_slides.slides_channel_header" name="Slides Channel Header">
+            <xpath expr="//h3[@class='mt0']" position="replace">
+                <h3 class="mt0">
+                    <a t-attf-href="/slides/#{slug(channel)}" t-esc="channel.name"/>
+                    <t t-if="category">
+                        / <a t-attf-href="/slides/#{slug(channel)}/category/#{slug(category)}" t-esc="category.name"/>
+                    </t>
+                </h3>
+            </xpath>
+            <xpath expr="//li[@t-if='header_object.nbr_videos']" position="replace">
+                <li t-if="header_object.nbr_videos" t-attf-class="#{slide_type in ('video', 'upload_video') and 'active' ''}">
+                    <a t-attf-href="/slides/#{slug(channel)}#{category and '/category/' + slug(category) or ''}/video">
+                        <span class="badge" t-esc="header_object.nbr_videos"/> Videos
+                    </a>
+                </li>
+            </xpath>
+        </template>
+        <!-- ==========================================================================
+        =========Added video player, and label changes=================================
+        =========================================================================== -->
+        <template id="slide_detail_view_custom" inherit_id="website_slides.slide_detail_view" name="Slide Detailed View" groups="base.qwarie_portal">
+            <!-- Video Player -->
+            <xpath expr="//div[@class='embed-responsive embed-responsive-16by9 embed-responsive-item mb8']" position="after">
+                <div t-if="slide.slide_type in ('upload_video', 'infographic') and slide.document_id" class="embed-responsive embed-responsive-16by9">
+                    <iframe width="750" height="550" t-att-src="url" frameborder="0" allowfullscreen="1"></iframe>
+                </div>
+            </xpath>
+            <!-- Replace Odoo Thumbnail with Qwarie Thumbnail -->
+            <xpath expr="//i[@class='fa fa-circle-o fa-5x']" position="replace">
+                <img style="height: 60px; width: 60px" src="/qwarie_customization/static/img/q.png"/>
+            </xpath>
+            <!-- Hide 'Share' Tab -->
+            <xpath expr="//ul[@class='nav nav-tabs']" position="replace">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li t-att-class="not comments and 'active' or ''">
+                        <a href="#about" role="tab" data-toggle="tab">
+                            <i class="fa fa-home"></i> About
+                        </a>
+                    </li>
+                    <li t-att-class="comments and 'active' or ''">
+                        <a href="#discuss" role="tab" data-toggle="tab">
+                            <i class="fa fa-comments-o"></i> Comments
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#transcript" role="tab" data-toggle="tab">
+                            <i class="fa fa-align-justify"></i> Transcript
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#statistic" role="tab" data-toggle="tab">
+                            <i class="fa fa-bar-chart"></i> Statistics
+                        </a>
+                    </li>
+                </ul>
+            </xpath>
+        </template>
+        <!-- Subscribe buttons -->
+        <template id="follow_qwarie" inherit_id="website_mail.follow">
+            <xpath expr="//div[@class='input-group js_follow']" position="replace">
+                <div class="input-group js_follow" 
+                        t-att-data-id="object.id"
+                        t-att-data-object="object._name"
+                        t-att-data-follow="object.id and object.message_is_follower and 'on' or 'off'"
+                        t-att-data-unsubscribe="'unsubscribe' if 'unsubscribe' in request.params else None">
+                    <input type="email" name="email" class="js_follow_email form-control" placeholder="Your email..." groups="base.qwarie_portal"/>
+                    <span class="input-group-btn">
+                        <button href="#" t-attf-class="btn btn-default js_unfollow_btn">Unsubscribe</button>
+                        <button href="#" t-attf-class="btn btn-primary js_follow_btn">Subscribe</button>
+                    </span>
+                </div>
+            </xpath>
+        </template>
+        <!-- Hide Social Share Row -->
+        <template id="custom_home" inherit_id="website_slides.home" name="Odoo Slides">
+            <xpath expr="//p[@class='row mt8']" position="replace"></xpath>
+        </template>
+        <template id="user_navbar_qwarie2" inherit_id="website.user_navbar" groups="base.qwarie_portal">
+            <xpath expr="//a[@class='dropdown-toggle hidden-xs']" position="replace">
+                <a href="#" class="dropdown-toggle hidden-xs" data-toggle="dropdown"><i class="fa fa-th-large"></i> CRM Menu<b class="caret"/></a>
+            </xpath>
+        </template>
+        <!-- Qwarie Portal Group Navbar -->
+        <template id="user_navbar" inherit_id="website.layout" groups="base.group_user,base.qwarie_portal">
+            <xpath expr="//body/div['id=wrawrap']" position="before">
+                <t t-if="website and menu_data">
+                    <nav id="oe_main_menu_navbar" class="navbar navbar-inverse hidden-xs" role="navigation">
+                        <div class="navbar-header">
+                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#oe_applications">
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                            </button>    
+                        </div>
+
+                        <ul id="oe_applications" class="nav navbar-nav navbar-left navbar-collapse collapse">
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle hidden-xs" data-toggle="dropdown"><i class="fa fa-th-large"></i> CRM Menu<b class="caret"/></a>
+                                <ul class="dropdown-menu">
+                                    <li t-foreach="menu_data['children']" t-as="menu">
+                                        <t t-set="debug_param" t-value="'?&amp;debug=' if debug else ''"/>
+                                        <a t-att-href="'/web%s#menu_id=%s&amp;action=%s' % (debug_param, menu['id'], menu['action'] and menu['action'].split(',')[1] or '')"
+                                            t-att-class="'oe_menu_toggler' if menu.get('children') else 'oe_menu_leaf'"
+                                            t-att-data-menu="menu['id']"
+                                            t-att-data-action-model="menu['action'] and menu['action'].split(',')[0] or ''"
+                                            t-att-data-action-id="menu['action'] and menu['action'].split(',')[1] or ''">
+                                            <i t-if="menu.get('icon')" t-attf-class="fa #{menu.get('icon')} fa-lg fa-fw"/>
+                                            <span class="oe_menu_text">
+                                                <t t-esc="menu['name']"/>
+                                            </span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <ul id="oe_editzone" class="nav navbar-nav hidden-xs" style="padding-left: 20px;" groups="base.group_website_publisher">
+                            <li t-if="not translatable"><button type="button" data-action="edit" class="btn btn-primary btn-xs">Edit</button></li>
+                            <li t-if="translatable"><button type="button" data-action="translate" class="btn btn-primary btn-xs">Translate</button></li>
+                            <li t-if="translatable"><a class="btn btn-link" data-action="edit_master" href="#"> or Edit Master</a></li>
+                        </ul>
+
+                        <ul id="oe_systray" class="nav navbar-nav navbar-right pull-right hidden-xs">
+                            <!-- Mobile -->
+                            <li>
+                                <a data-action="show-mobile-preview" href="#">
+                                    <span title="Mobile preview"><i class="fa fa-mobile"/></span>
+                                </a>
+                            </li>
+
+                            <!-- Promote -->
+
+                            <li groups="base.group_website_designer">
+                                <a id="promote-menu-button" class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                    Promote <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu oe_promote_menu" role="menu">
+                                    <li>
+                                        <a data-action="promote-current-page" href="#">
+                                            <span title="Promote page on the web">Optimize SEO</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://www.adspike.com">
+                                            <span title="Optimize your AdWords account">Optimize AdWords Campaign</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <!-- Content -->
+                            <li class="dropdown" groups="base.group_website_publisher" t-if="editable">
+                                <a id="content-menu-button" class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                    Content <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu oe_content_menu" role="menu">
+                                    <li groups="base.group_website_designer"><a data-action="edit_menu" href="#"><span title="Edit Top Menu">Edit Menu</span></a></li>
+                                    <li class="divider" groups="base.group_website_designer"> </li>
+                                    <t t-if="deletable">
+                                        <li groups="base.group_website_designer"><a href="#" data-action="rename_page">Rename Page</a></li>
+                                        <li groups="base.group_website_designer"><a href="#" data-action="delete_page">Delete Page</a></li>
+                                        <li class="divider" groups="base.group_website_designer"> </li>
+                                    </t>
+                                    <li groups="base.group_website_designer"><a href="#" data-action="new_page">New Page</a></li>
+                                </ul>
+                            </li>
+
+                            <!-- Customize -->
+                            <li class="dropdown" id="customize-menu" groups="base.group_website_designer">
+                                <a id="customize-menu-button" class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                    Customize <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li id="html_editor"><a href="#advanced-view-editor" data-action='ace'>HTML Editor</a></li>
+                                    <li id="theme_customize"><a href="#">Customize Theme</a></li>
+                                    <li id="install_apps"><a href="/web#return_label=Website&amp;action=website.action_module_website">Install Apps</a></li>
+                                    <li class="divider"></li>
+                                </ul>
+                            </li>
+
+                            <!-- Help -->
+                            <li class="dropdown">
+                                <a id="help-menu-button" class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                    Help <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu" role="menu" id="help-menu">
+                                    <li class="dropdown-header">HELP &amp; TUTORIALS</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </nav>
+                </t>
+            </xpath>
+        </template>
+        <!-- <record id="view_link_tracker_graph_qwarie" model="ir.ui.view">
+            <field name="name">link tracker.graph</field>
+            <field name="model">link.tracker</field>
+            <field name="inherit_id" ref="link_tracker.view_link_tracker_graph"/>
+            <field name="arch" type="xml">
+                <xpath expr="//graph[@type='bar']" position="replace">
+                    <graph string="website links" type="bar">
+                        <field name="url" type="row"/>
+                        <field name="user_id" type="measure"/>
+                    </graph>
+                </xpath>
+            </field>
+        </record> -->
+    </data>
+</openerp>

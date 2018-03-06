@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <!--=====================================================================
+        === MODEL: Partner (res.partner) ========================================
+        ======================================================================-->
+        <!-- Partner Search -->
+        <!-- Add custom filter -->
+        <record model="ir.ui.view" id="res_partner_qwarie_employee">
+            <field name="name">res.partner.qwarie_employee</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_res_partner_filter"/>
+            <field name="arch" type="xml">
+                <filter name="type_person" position="before">
+                    <filter string="Qwarie employees"
+                            name='qwarie_employee' domain="['|', ('id', '=', 1), ('parent_id', '=', 1)]"
+                            help="Show all qwarie employees" />
+                    <separator />
+                </filter>
+            </field>
+        </record>
+
+        <!-- Partner Form -->
+        <!-- Restrict Actions dropdown buttons -->
+        <record model="ir.ui.view" id="view_partners_form_crm2">
+            <field name="name">view.res.partner.form.crm.inherited2</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="crm.view_partners_form_crm1"/>
+            <field name="arch" type="xml">
+                <button name="%(crm.crm_lead_opportunities)d" position="attributes">
+                    <attribute name="groups">base.group_sale_salesman</attribute>
+                </button>
+                <page name="sales_purchases" position="attributes">
+                    <attribute name="groups">base.group_sale_salesman</attribute>
+                </page>
+                <button name="schedule_meeting" position="attributes">
+                    <attribute name="groups">base.group_user</attribute>
+                </button>
+                <xpath expr="//notebook" position="attributes">
+                    <attribute name="groups">base.group_user</attribute>
+                </xpath>
+                <field name="message_follower_ids" position="attributes">
+                    <attribute name="groups">base.group_user</attribute>
+                </field>
+                <field name="message_ids" position="attributes">
+                    <attribute name="groups">base.group_user</attribute>
+                </field>
+                <xpath expr="//page[last()]" position="attributes">
+                    <attribute name="groups">base.group_no_one</attribute>
+                </xpath>
+                <xpath expr="//page[last()]" position="after">
+                    <page string="Documents">
+                        <group>
+                            <label for="attachment_ids"/>
+                            <div>
+                                <field name="attachment_ids" widget="many2many_binary" string="Attach a file" colspan="3"/>
+                            </div>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Partner Form -->
+        <!-- Restrict 'Analytic Accounts' button in form -->
+        <record model="ir.ui.view" id="account.partner_view_button_contracts_count">
+            <field name="groups_id" eval="[(6,0, [ref('base.group_sale_salesman')])]"/>
+        </record>
+
+        <!-- Partner Form -->
+        <!-- Restrict 'Not Published' button in form -->
+        <record model="ir.ui.view" id="website_partner.view_partners_form_website">
+            <field name="groups_id" eval="[(4, ref('base.group_erp_manager'))]"/>
+        </record>
+
+        <!-- Users Form -->
+        <!-- Allow modification of related partner -->
+        <record model="ir.ui.view" id="view_partners_form_crm2">
+            <field name="name">res.users.form</field>
+            <field name="model">res.users</field>
+            <field name="inherit_id" ref="base.view_users_form"/>
+            <field name="arch" type="xml">
+                <field name="partner_id" position="attributes">
+                    <attribute name="readonly">0</attribute>
+                </field>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === WINDOW ACTIONS (ir.actions.act_window) ==============================
+        ======================================================================-->
+        <!-- Restrict 'Journal Items' in Action dropdown -->
+        <record model="ir.actions.act_window" id="account.action_move_line_select_by_partner">
+            <field name="groups_id" eval="[(4, ref('account.group_account_manager'))]"/>
+        </record>
+
+        <!-- Restrict 'Subscribe' in Action dropdown -->
+        <record model="ir.actions.act_window" id="event.act_register_event_partner">
+            <field name="groups_id" eval="[(4, ref('event.group_event_manager'))]"/>
+        </record>
+
+        <!-- Restrict 'Due Payments' in Action dropdown -->
+        <record model="ir.actions.report.xml" id="account.action_report_print_overdue">
+            <field name="groups_id" eval="[(4, ref('account.group_account_manager'))]"/>
+        </record>
+
+        <!-- Restrict 'Assigned Tasks' in Action dropdown -->
+        <record model="ir.actions.act_window" id="project.act_res_users_2_project_task_opened">
+            <field name="groups_id" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!--=====================================================================
+        === SERVER ACTIONS (ir.actions.act_window) ==============================
+        ======================================================================-->
+        <!-- Custom Home Action for Users -> User -> Prefrences -> Home Action -->
+        <!-- Opens system contact page for user -->
+        <record model="ir.actions.server" id="qwarie_contact_profile_action">
+            <field name="name">Qwarie Contact page</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="code">
+                action = env['hr.employee'].open_contact_page()
+            </field>
+        </record>
+
+    </data>
+</openerp>

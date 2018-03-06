@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+
+    <!-- Mail template are declared in a NOUPDATE block
+         so users can freely customize/delete them -->
+    <data noupdate="1">
+        <!--Email template -->
+        <record id="email_template_certificate" model="mail.template">
+            <field name="name">Certificate - Send by Email</field>
+            <field name="email_from">${object.partner_id.user_id.email}</field>
+            <field name="subject">Congratulations ${object.participant_name} Certificate of ${object.event_id.training_subject or 'n/a'}</field> 
+            <field name="partner_to">${object.partner_id.id}</field>
+            <field name="email_to">${object.email}</field>
+            <field name="model_id" ref="qwarie_customization.model_survey_user_input"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="report_template" ref="report_certificate"/>
+            <field name="report_name">Qwarie_${(object.participant_name.replace(' ','_') or 'n/a')}_training_certificate</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="body_html">
+                <![CDATA[
+	            Hello ${object.participant_name},<br/><br/>
+                Congratulations for promoting ${object.event_id.training_subject}!<br/><br/>
+                This is the certificate, that certify you have successfully attended ${object.event_id.name}!<br/><br/>
+	            ]]>
+	        </field>
+       </record>
+    </data>
+</openerp>

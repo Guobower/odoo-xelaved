@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!--=====================================================================
+        === MODEL: Survey (survey.survey) =======================================
+        ======================================================================-->
+        <!-- Survey Form -->
+        <record model="ir.ui.view" id="survey_form" >
+            <field name="name">survey_form</field>
+            <field name="model">survey.survey</field>
+            <field name="inherit_id" ref="survey.survey_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="replace">
+                    <form string="Survey">
+                        <field name="id" invisible="1"/>
+                        <field name="tot_start_survey" invisible="1"/>
+                        <header>
+                            <button name="action_test_survey" string="Design" type="object" class="oe_highlight" groups="base.group_survey_manager"/>
+                            <button name="action_test_survey" string="Test" type="object" attrs="{'invisible': [('id', '=', False)]}" groups="base.group_survey_manager"/>
+                            <button name="action_print_survey" string="Print" type="object" attrs="{'invisible': [('id', '=', False)]}" groups="base.group_survey_manager"/>
+                            <button name="action_send_survey" string="Share and invite by email" type="object" class="oe_highlight"  groups="base.group_survey_manager" attrs="{'invisible': [('id', '=', False)]}"/>
+                            <button name="action_result_survey" string="View results" type="object" attrs="{'invisible': ['|',('id', '=', False), ('tot_start_survey', '!=', 0)]}" groups="base.group_survey_manager,base.qwarie_training_overseer"/>
+                            <button name="action_result_survey" string="View results" type="object" class="oe_highlight" attrs="{'invisible': [('tot_start_survey', '=', 0)]}" groups="base.group_survey_manager,base.qwarie_training_overseer"/>
+                            <field name="stage_id" widget="statusbar" clickable="True" groups="base.group_survey_manager"/>
+                        </header>
+                        <sheet>
+                            <div class="oe_title" style="width: 100%;">
+                                <label for="title" class="oe_edit_only"/>
+                                <h1 attrs="{'invisible': [('type', 'in', ['preliminary', 'exam'])]}"><field name="title" placeholder="Survey Title"/></h1>
+                                <h1 attrs="{'invisible': [('type', 'not in', ['preliminary', 'exam'])]}"><field name="title2" placeholder="Exam Title"/></h1>
+                            </div>
+                            <group>
+                                <group>
+                                    <field name="type" groups="base.group_survey_user"/>
+                                    <field name="is_active" groups="base.group_survey_user"/>
+                                    <field name="customer_id" groups="base.group_user" attrs="{'invisible': [('type','!=','preliminary')]}"/>
+                                    <field name="duration" attrs="{'invisible': [('type', 'not in', ['preliminary', 'exam'])]}" placeholder="In minutes"/>
+                                </group>
+                                <group attrs="{'invisible': [('type','!=','preliminary')]}" groups="base.group_survey_user">
+                                    <field name="l1_total_score"/>
+                                    <field name="l2_total_score"/>
+                                </group>
+                            </group>
+                            <notebook>
+                                <page string="Questions">
+                                    <field name="page_ids" mode="tree" context="{'default_survey_id': active_id}" nolabel="1">
+                                        <tree>
+                                            <field name="sequence" widget="handle"/>
+                                            <field name="title"/>
+                                            <field name="question_ids"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                                <page string="Options" groups="base.group_user">
+                                    <group class="o_label_nowrap">
+                                        <field name="users_can_go_back" string="User can come back in the previous page"/>
+                                        <field name="auth_required"/>
+                                        <field name="quizz_mode" groups="base.group_no_one"/>
+                                    </group>
+                                </page>
+                                <page string="Participants" attrs="{'invisible': [('type','!=','preliminary')]}">
+                                    <button name="email_survey" string="Email Pre-Training Assessment to All" type="object" class="email-survey-all"
+                                        context="{'survey_type': 'exam'}" confirm="Are you sure you want to email the exam to everyone?" groups="base.qwarie_basic,base.qwarie_training_overseer"/>
+                                    <field name="user_input_ids" context="{'default_survey_type': 'preliminary'}" widget="x2many_selectable">
+                                        <tree string="Participants" edit="true" create="true" delete="true" editable="bottom">
+                                            <field name="participant_name"/>
+                                            <field name="email"/>
+                                            <field name="state"/>
+                                            <field name="max_total_score" invisible="1"/>
+                                            <field name="quizz_score" invisible="1"/>
+                                            <field name="weighted_average" string="Weighted Average"/>
+                                            <field name="l1_score"/>
+                                            <field name="l2_score"/>
+                                            <field name="email_sent"/>
+                                            <field name="attendee_ids" widget="many2many_tags"/>
+                                            <field name="token" invisible="1"/>
+                                            <field name="survey_url" invisible="1"/>
+                                            <field name="survey_type" invisible="1"/>
+                                            <button name="add_participant" string="Add to training" type="object" class="email-survey"
+                                                confirm="Add participant to selected training?" groups="base.qwarie_basic,base.qwarie_training_overseer" 
+                                                attrs="{'invisible': ['&amp;','|',('weighted_average', 'in', ['0%','1%','2%','3%','4%','5%','6%','7%','8%','9%']),('weighted_average', '&lt;', '70%'),('weighted_average', '!=', '100%')]}"/>
+                                            <button name="email_survey_again" string="Email PTAMS again" type="object" class="email-survey"
+                                                groups="base.qwarie_basic,base.qwarie_training_overseer" 
+                                                attrs="{'invisible': ['|', '|','&amp;',('weighted_average', 'not in', ['0%','1%','2%','3%','4%','5%','6%','7%','8%','9%']),('weighted_average', '&gt;=', '70%'),('state', 'in', ('new')),('weighted_average', '==', '100%')]}"/>
+                                            <button name="email_survey" string="Email PTAMS" type="object" class="email-survey"
+                                                groups="base.qwarie_basic,base.qwarie_training_overseer" attrs="{'invisible': [('state', '!=', 'new')]}"/>
+                                            <button name="clipboard" type='button' icon="fa-clipboard" string='Copy to clipboard' groups="base.qwarie_basic,base.qwarie_training_overseer"/>
+                                            <button name="print_results" type='object' icon="fa-eye" string="View Delegate's Exam"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                            </notebook>
+                        </sheet>
+                        <div class="oe_chatter">
+                            <field name="message_follower_ids" widget="mail_followers"/>
+                            <field name="message_ids" widget="mail_thread"/>
+                        </div>
+                    </form>
+                </xpath>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="survey_kanban">
+            <field name="name">survey.kanban</field>
+            <field name="model">survey.survey</field>
+            <field name="inherit_id" ref="survey.survey_kanban"/>
+            <field name="arch" type="xml">
+                <xpath expr="//kanban" position="replace">
+                    <kanban default_group_by="stage_id">
+                        <field name="stage_id" />
+                        <field name="designed" />
+                        <field name="title" />
+                        <field name="type" />
+                        <field name="tot_sent_survey" />
+                        <field name="tot_start_survey" />
+                        <field name="tot_comp_survey" />
+                        <field name="color" />
+                        <field name="auth_required" />
+                        <field name="public_url" />
+                        <templates>
+                            <div t-name="kanban-box" t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)} oe_kanban_card oe_kanban_global_click">
+                                <div class="o_dropdown_kanban dropdown" t-if="widget.editable">
+
+                                    <a class="dropdown-toggle btn" data-toggle="dropdown" href="#" >
+                                        <span class="fa fa-bars fa-lg"/>
+                                    </a>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                        <li t-if="record.type.raw_value == 'exam' or record.type.raw_value == 'preliminary'"><a type="edit">Edit Exam</a></li>
+                                        <li  t-if="record.type.raw_value != 'exam' and record.type.raw_value != 'preliminary'"><a type="edit">Edit Survey</a></li>
+                                        <li t-if="widget.deletable"><a type="delete">Delete</a></li>
+                                        <li><ul class="oe_kanban_colorpicker" data-field="color"/></li>
+                                    </ul>
+                                </div>
+                                <div class="oe_kanban_content">
+                                    <h4 class="oe_center"><field name="title" /></h4>
+                                    <div><ul>
+                                        <li>
+                                            <a name="action_test_survey" type="object">Design</a>
+                                        </li>
+                                        <li>
+                                            <t t-if="record.designed.raw_value"><a type="object" name="action_test_survey">Test</a></t>
+                                            <t t-if="! record.designed.raw_value"><a style="color: #aaaaaa;">Test</a></t>
+                                        </li>
+                                        <li>
+                                            <t t-if="record.designed.raw_value"><a type="object" name="action_send_survey">Share &amp;amp; Invite</a></t>
+                                            <t t-if="! record.designed.raw_value"><a style="color: #aaaaaa;">Share &amp;amp; Invite</a></t>
+                                        </li>
+                                        <li>
+                                            <t t-if="record.tot_start_survey.raw_value &gt; 0"><a name="action_result_survey" type="object">Analyze Answers</a> <span t-if="record.tot_start_survey.raw_value &gt; 0">(<field name="tot_start_survey" />)</span></t>
+                                            <t t-if="record.tot_start_survey.raw_value &lt;= 0"><a style="color: #aaaaaa;">Analyze Answers</a></t>
+                                        </li>
+                                    </ul></div>
+                                </div>
+                            </div>
+                        </templates>
+                    </kanban>
+                </xpath>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="survey_kanban2">
+            <field name="name">Kanban view for survey</field>
+            <field name="model">survey.survey</field>
+            <field name="inherit_id" ref="qwarie_customization.survey_kanban"/>
+            <field name="groups_id" eval="[(6,0,[ref('base.qwarie_training_overseer')])]"/>
+            <field name="arch" type="xml">
+                <xpath expr="//kanban" position="replace">
+                    <kanban>
+                        <field name="designed" />
+                        <field name="title" />
+                        <field name="type" />
+                        <field name="tot_sent_survey" />
+                        <field name="tot_start_survey" />
+                        <field name="tot_comp_survey" />
+                        <field name="color" />
+                        <field name="auth_required" />
+                        <field name="public_url" />
+                        <templates>
+                            <div t-name="kanban-box" t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)} oe_kanban_card oe_kanban_global_click">
+                                <div class="o_dropdown_kanban dropdown" t-if="widget.editable">
+
+                                    <a class="dropdown-toggle btn" data-toggle="dropdown" href="#" >
+                                        <span class="fa fa-bars fa-lg"/>
+                                    </a>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                        <li t-if="record.type.raw_value == 'exam' or record.type.raw_value == 'preliminary'"><a type="edit">Edit Exam</a></li>
+                                        <li  t-if="record.type.raw_value != 'exam' and record.type.raw_value != 'preliminary'"><a type="edit">Edit Survey</a></li>
+                                        <li t-if="widget.deletable"><a type="delete">Delete</a></li>
+                                        <li><ul class="oe_kanban_colorpicker" data-field="color"/></li>
+                                    </ul>
+                                </div>
+                                <div class="oe_kanban_content">
+                                    <h4 class="oe_center"><field name="title" /></h4>
+                                    <div><ul>
+                                        <li>
+                                            <t t-if="record.designed.raw_value"><a type="object" name="action_test_survey">Test</a></t>
+                                            <t t-if="! record.designed.raw_value"><a style="color: #aaaaaa;">Test</a></t>
+                                        </li>
+                                        <li>
+                                            <t t-if="record.tot_start_survey.raw_value &gt; 0"><a name="action_result_survey" type="object">Analyze Answers</a> <span t-if="record.tot_start_survey.raw_value &gt; 0">(<field name="tot_start_survey" />)</span></t>
+                                            <t t-if="record.tot_start_survey.raw_value &lt;= 0"><a style="color: #aaaaaa;">Analyze Answers</a></t>
+                                        </li>
+                                    </ul></div>
+                                </div>
+                            </div>
+                        </templates>
+                    </kanban>
+                </xpath>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MODEL: Survey Question (survey.question) ============================
+        ======================================================================-->
+        <!-- Survey Question Form -->
+        <record model="ir.ui.view" id="survey_question_form">
+            <field name="name">survey_question_form</field>
+            <field name="model">survey.question</field>
+            <field name="inherit_id" ref="survey.survey_question_form"/>
+            <field name="arch" type="xml">
+                <field name="question" position="replace">
+                    <field name="question" context="'default_question': 'question'"/>
+                </field>
+                <field name="type" position="after">
+                    <field name="max_score"/>
+                    <field name="is_active"/>
+                </field>
+                <field name="quizz_mark" position="attributes">
+                    <attribute name="groups">base.group_survey_manager,base.qwarie_training_overseer</attribute>
+                </field>
+                <field name="constr_error_msg" position="after">
+                     <field name="constr_show_ids" widget="many2many_tags"/>
+                </field>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MODEL: Survey Question Constraints (survey.question.constraints) ====
+        ======================================================================-->
+        <!-- Survey Question Constraints Tree -->
+        <record model="ir.ui.view" id="survey_question_constraints_tree">
+            <field name="name">survey.question.constraints.tree</field>
+            <field name="model">survey.question.constraints</field>
+            <field name="arch" type="xml">
+                <tree string="Question Constraints" create="true" edit="true" delete="true" editable="top">
+                    <field name="name"/>
+                    <field name="constr_tag"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Survey Question Constraints Form -->
+        <record model="ir.ui.view" id="survey_question_constraints_form">
+            <field name="name">survey.question.constraints.form</field>
+            <field name="model">survey.question.constraints</field>
+            <field name="arch" type="xml">
+                <form string="Survey question constraints">
+                    <group>
+                        <field name="name"/>
+                    </group>
+                    <group>
+                        <field name="constr_tag" groups="base.group_no_one"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <!-- Survey Question Constraints Kanban -->
+        <record model="ir.ui.view" id="survey_question_constraints_kanban">
+            <field name="name">survey.question.constraints.kanban</field>
+            <field name="model">survey.question.constraints</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_mobile">
+                    <field name="name"/>
+                    <field name="constr_tag"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <strong><span><t t-esc="record.name.value"/></span></strong>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <strong><span><t t-esc="record.constr_tag.value"/></span></strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MODEL: Survey Label (survey.label) ==================================
+        ======================================================================-->
+        <!-- Survey Label Tree -->
+        <record model="ir.ui.view" id="survey_label_tree" >
+            <field name="name">survey_label_tree</field>
+            <field name="model">survey.label</field>
+            <field name="inherit_id" ref="survey.survey_label_tree"/>
+            <field name="arch" type="xml">
+                <field name="quizz_mark" position="attributes">
+                    <attribute name="groups">base.group_survey_manager,base.qwarie_training_overseer</attribute>
+                </field>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MODEL: Survey User Input (survey.user_input) ========================
+        ======================================================================-->
+        <!-- Survey User Input Tree -->
+        <record model="ir.ui.view" id="survey_user_input_tree">
+            <field name="name">survey_user_input_tree</field>
+            <field name="model">survey.user_input</field>
+            <field name="inherit_id" ref="survey.survey_user_input_tree"/>
+            <field name="arch" type="xml">
+                <field name="survey_id" position="after">
+                    <field name="event_id"/>
+                </field>
+                <field name="state" position="before">
+                    <field name="email_sent"/>
+                    <field name="survey_interrupted"/>
+                </field>
+            </field>
+        </record>
+
+        <!-- Survey User Input From -->
+        <record model="ir.ui.view" id="survey_user_input_form">
+            <field name="name">survey_user_input_form</field>
+            <field name="model">survey.user_input</field>
+            <field name="inherit_id" ref="survey.survey_user_input_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="replace">
+                    <form string="User inputs" create="false">
+                        <header>
+                            <button name="action_survey_resent" string="Sent Invitation Again" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('type','=','manually'), ('state', '=', 'done')]}"/>
+                            <button name="action_view_answers" states="done" string="Print These Answers" type="object"  class="oe_highlight" />
+                            <button name="action_course_survey_results" string="View Course Results" type="object" />
+                            <button name="action_survey_results" string="View Survey Results" type="object" groups="base.group_survey_user"/>
+                            <field name="state" widget="statusbar"/>
+                        </header>
+                        <sheet>
+                            <div class="oe_button_box" name="button_box"/>
+                            <group col="2">
+                                <group groups="base.group_survey_user">
+                                    <field name="survey_id"/>
+                                    <field name="date_create"/>
+                                    <field name="start_exam"/>
+                                    <field name="type"/>
+                                    <field name="token" groups="base.group_no_one"/>
+                                    <field name="email_sent"/>
+                                    <field name="survey_interrupted"/>
+                                </group>
+                                <group>
+                                    <field name="deadline" groups="base.group_survey_user"/>
+                                    <field name="event_id" domain="[('stage_id.sequence','in',[1, 2])]"/>
+                                    <field name="survey_event_trainer"/>
+                                    <field name="partner_id" groups="base.group_survey_user"/>
+                                    <field name="participant_name"/>
+                                    <field name="email" widget="email"/>
+                                    <field name="test_entry" groups="base.group_no_one"/>
+                                    <field name="quizz_score" invisible="1" groups="base.group_survey_user"/>
+                                </group>
+                            </group>
+                            <field name="user_input_line_ids" mode="tree" attrs="{'readonly': False}" groups="base.group_survey_user">
+                                <tree>
+                                    <field name="page_id"/>
+                                    <field name="question_id"/>
+                                    <field name="answer_type"/>
+                                    <field name="skipped"/>
+                                    <field name="date_create"/>
+                                    <field name="quizz_mark" groups="base.group_survey_user"/>
+                                </tree>
+                            </field>
+                        </sheet>
+                    </form>
+                </xpath>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MODEL: Survey Page ==============
+        ======================================================================-->
+        <record model="ir.ui.view" id="survey_page_form">
+            <field name="name">Form view for survey page</field>
+            <field name="model">survey.page</field>
+            <field name="inherit_id" ref="survey.survey_page_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="replace">
+                    <form string="Survey Page" create="false">
+                        <sheet>
+                            <div class="oe_title" style="width: 100%;">
+                                <label for="title" class="oe_edit_only"/>
+                                <h1><field name="title" placeholder="Page Title"/></h1>
+                            </div>
+                            <field name="question_ids" nolabel="1" mode="tree" context="{'default_page_id': active_id}" widget="x2many_selectable_survey">
+                                <tree>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="order_number" class="auto_number"/>
+                                    <field name="question"/>
+                                    <field name="type"/>
+                                    <field name="constr_mandatory"/>
+                                    <field name="is_active"/>
+                                </tree>
+                            </field>
+                        </sheet>
+                    </form>
+                </xpath>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MODEL: Survey User Input Line (survey.user_input_line) ==============
+        ======================================================================-->
+        <!-- Survey User Input Line Tree -->
+        <record model="ir.ui.view" id="survey_response_line_tree">
+            <field name="name">survey_response_line_tree</field>
+            <field name="model">survey.user_input_line</field>
+            <field name="inherit_id" ref="survey.survey_response_line_tree"/>
+            <field name="arch" type="xml">
+                <field name="quizz_mark" position="attributes">
+                    <attribute name="groups">base.group_survey_manager</attribute>
+                </field>
+            </field>
+        </record>
+
+        <!-- Survey User Input Line From -->
+        <record model="ir.ui.view" id="survey_user_input_line_form">
+            <field name="name">survey_user_input_line_form</field>
+            <field name="model">survey.user_input_line</field>
+            <field name="inherit_id" ref="survey.survey_user_input_line_form"/>
+            <field name="arch" type="xml">
+                <field name="quizz_mark" position="attributes">
+                    <attribute name="groups">base.group_survey_manager</attribute>
+                </field>
+            </field>
+        </record>
+
+        <!-- Survey User Input Line Search -->
+        <record model="ir.ui.view" id="survey_user_input_search">
+            <field name="name">survey_user_input_search</field>
+            <field name="model">survey.user_input</field>
+            <field name="inherit_id" ref="survey.survey_user_input_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[1]" position="inside">
+                    <filter name="group_by_course" string="Course" domain="[]"  context="{'group_by':'event_id'}"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === WINDOW ACTIONS (ir.actions.act_window) ==============================
+        ======================================================================-->
+        <!-- Survey Answers -->
+        <!-- Group answers by survey and by course id -->
+        <record model="ir.actions.act_window" id="survey.action_survey_user_input">
+            <field name="context">{'search_default_group_by_survey': True, 'search_default_group_by_course': True}</field>
+        </record>
+
+        <!-- Exam -> Exam Menu Action -->
+        <record model="ir.actions.act_window" id="action_exam_form">
+            <field name="name">Exams</field>
+            <field name="res_model">survey.survey</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('type', 'in', ['exam', 'preliminary'])]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">Click to add an exam.</p>
+            </field>
+        </record>
+
+        <!-- Exam -> Answers Menu Action -->
+        <record model="ir.actions.act_window" id="action_exam_user_input">
+            <field name="name">Exams Answers</field>
+            <field name="res_model">survey.user_input</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="survey.survey_user_input_tree"></field>
+            <field name="search_view_id" ref="survey.survey_user_input_search"/>
+            <field name="context">{'search_default_group_by_survey': True, 'search_default_group_by_course': True}</field>
+            <field name="domain">[('survey_id.type', 'in', ['exam', 'preliminary'])]</field>
+            <field name="help" type="html">
+                <p>Nobody has completed your exams yet.</p>
+            </field>
+        </record>
+
+        <!-- Feedback -> Feedback Menu Action -->
+        <record model="ir.actions.act_window" id="action_feedback_form">
+            <field name="name">Feedback</field>
+            <field name="res_model">survey.survey</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('type', '=', 'feedback')]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">Click to add an exam.</p>
+            </field>
+        </record>
+
+        <!-- Feedback -> Answers Menu Action -->
+        <record model="ir.actions.act_window" id="action_feedback_user_input">
+            <field name="name">Feedback Answers</field>
+            <field name="res_model">survey.user_input</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="survey.survey_user_input_tree"></field>
+            <field name="search_view_id" ref="survey.survey_user_input_search"/>
+            <field name="context">{'search_default_group_by_survey': True, 'search_default_group_by_course': True}</field>
+            <field name="domain">[('survey_id.type', '=', 'feedback')]</field>
+            <field name="help" type="html">
+                <p>Nobody has completed your exams yet.</p>
+            </field>
+        </record>
+
+        <!-- Surveys Question Constraints Menu Action -->
+        <record model="ir.actions.act_window" id="action_constraints_tree">
+            <field name="name">Surveys Question Constraints</field>
+            <field name="res_model">survey.question.constraints</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+        <!-- Exam Menu Action for customer Training portal access -->
+        <record model="ir.actions.act_window" id="action_exams_kanban">
+            <field name="name">Pre-Training Assessment and Module Selection</field>
+            <field name="res_model">survey.survey</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="view_id" ref="qwarie_customization.survey_kanban2"/>
+            <field name="context">{'group_by': False, 'default_group_by': False}</field>
+            <field name="domain">[('type', 'in', ['preliminary']), ('is_active', '=', True)]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">You have no PTAMS scheduled</p>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MENU ITEMS (ir.ui.menu) =============================================
+        ======================================================================-->
+        <!-- Exams Menu-->
+        <menuitem name="Exams" id="menu_exams" sequence="3" groups="base.group_survey_user,base.qwarie_trainer,base.qwarie_coordinator"  web_icon="survey,static/description/icon.png"/>
+        <menuitem name="Exams" id="menu_exam_form" action="qwarie_customization.action_exam_form" parent="menu_exams" sequence="1"/>
+        <menuitem name="Answers" id="menu_exam_type_form1" action="qwarie_customization.action_exam_user_input" parent="menu_exams" sequence="1"/>
+
+        <!-- Feedback Menu-->
+        <menuitem name="Feedback" id="menu_feedback" sequence="3" groups="base.group_survey_user,base.qwarie_trainer,base.qwarie_coordinator"  web_icon="survey,static/description/icon.png"/>
+        <menuitem name="Feedback" id="menu_feedback_form" action="qwarie_customization.action_feedback_form" parent="menu_feedback" sequence="1"/>
+        <menuitem name="Answers" id="menu_feedback_type_form1" action="qwarie_customization.action_feedback_user_input" parent="menu_feedback" sequence="1"/>
+
+        <!-- Question Constraints Submenu-->
+        <menuitem name="Question Constraints" id="menu_survey_question_constraints" action="qwarie_customization.action_constraints_tree" parent="survey.menu_surveys_configuration" sequence="4"/>
+
+        <!-- Survey Menu-->
+        <record model="ir.ui.menu" id="survey.menu_surveys">
+            <field name="sequence">4</field>
+            <field name="groups_id" eval="[(6,0, [ref('base.group_erp_manager')])]"/>
+        </record>
+
+        <!-- Survey Menu for customer Training portal access -->
+        <menuitem name="PTAMS" id="menu_training_exams" sequence="3" groups="base.group_survey_user,base.qwarie_training_overseer" web_icon="survey,static/description/icon.png"/>
+        <menuitem name="PTAMS" id="menu_training_exams_submenu" parent="menu_training_exams" action="action_exams_kanban" sequence="1" groups="base.group_survey_user,base.qwarie_training_overseer"/>
+
+    </data>
+</openerp>

@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<openerp>
+    <data>
+        <record id="paperformat_invoice" model="report.paperformat">
+            <field name="name">Invoice</field>
+            <field name="default" eval="True"/>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">35</field>
+            <field name="margin_bottom">23</field>
+            <field name="margin_left">0</field>
+            <field name="margin_right">0</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">35</field>
+            <field name="dpi">96</field>
+        </record>
+        <template id="qwarie_external_layout">
+            <t t-call="qwarie_customization.qwarie_external_layout_header" />
+            <t t-raw="0" />
+            <t t-call="qwarie_customization.qwarie_external_layout_footer" />
+        </template>
+
+        <template id="qwarie_external_layout_header">
+            <div class="header" style="width:100%;margin:0 0 0 0">
+                <div class="row">
+                    <img style="width:100%;height:auto;margin:0 0 0 0" src="/qwarie_customization/static/img/header-large.png"/>
+                </div>
+            </div>
+        </template>
+
+        <template id="qwarie_external_layout_footer">
+            <div class="footer" style="width:100%;margin:0 0 50 0">
+                <div class="row">
+                    <img style="width:100%;height:auto;margin:0 0 50 0" src="/qwarie_customization/static/img/footer_large.png"/>
+                </div>
+            </div>      
+        </template>
+        <!--===========================================================
+        === TEMPLATES =================================================
+        ============================================================-->
+        <template id="account.report_invoice_document">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="qwarie_customization.qwarie_external_layout">
+                    <t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})" />
+                    <div class="page" style="font-size: 15px;">
+                        <div class="row mt32 mb32">
+                            <div class="col-xs-6" style="margin-bottom: 10px; padding-bottom: 10px; padding-left: 200px; font-family: arial; font-size: 40px;">
+                                <span t-if="o.type == 'out_invoice' and (o.state == 'open' or o.state == 'paid')">INVOICE</span>
+                                <span t-if="o.type == 'out_invoice' and o.state == 'proforma2'">PRO-FORMA</span>
+                                <span t-if="o.type == 'out_invoice' and o.state == 'draft'">DRAFT INVOICE</span>
+                                <span t-if="o.type == 'out_invoice' and o.state == 'cancel'">CANCELLED INVOICE</span>
+                                <span t-if="o.type == 'out_refund'">REFUND</span>
+                                <span t-if="o.type == 'in_refund'">VENDOR REFUND</span>
+                                <span t-if="o.type == 'in_invoice'">VENDOR BILL</span>
+                            </div>
+                            <div class="col-xs-6 text-justify" style="padding-left: 150">
+                                <div class="col-xs-12">
+                                    <div t-if="o.purchase_order">
+                                        <strong>Purchase Order:   </strong>
+                                        <span style="padding-left: 10px;" t-field="o.purchase_order"/>
+                                    </div>
+                                    <div t-if="o.supplier_id">
+                                        <strong>Supplier ID:   </strong>
+                                        <span style="padding-left: 10px;" t-field="o.supplier_id"/>
+                                    </div>
+                                    <div t-if="o.number">
+                                        <strong>Invoice Number:
+                                            <span style="padding-left: 10px;" t-field="o.number"/>
+                                        </strong>
+                                    </div>
+                                    <div t-if="o.date_invoice">
+                                        <strong>Invoice Date:   
+                                            <span style="padding-left: 10px;" t-field="o.date_invoice"/>
+                                        </strong>
+                                    </div>
+                                    <div t-if="o.date_due and o.type == 'out_invoice' and (o.state == 'open' or o.state == 'paid')">
+                                        <strong>Due Date:   
+                                            <span style="padding-left: 10px;" t-field="o.date_due"/>
+                                        </strong>
+                                    </div>
+                                    <div t-if="o.origin">
+                                        <strong>Source:   </strong>
+                                        <span style="padding-left: 10px;" t-field="o.origin"/>
+                                    </div>
+                                    <div t-if="o.partner_id.ref">
+                                        <strong>Customer Code:   </strong>
+                                        <span style="padding-left: 10px;" t-field="o.partner_id.ref"/>
+                                    </div>
+                                    <div name="reference" t-if="o.reference">
+                                        <strong>Reference:   </strong>
+                                        <span style="padding-left: 10px;" t-field="o.reference"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb32">
+                            <div class="col-xs-6">
+                                <div style="padding-left: 75px">
+                                    <strong>Customer:</strong>
+                                </div>
+                                <div style="padding-left: 125px">
+                                    <span t-field="o.partner_id"
+                                        t-field-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}' /><br/>
+                                </div>
+                                <div style="padding-left: 75px">
+                                    <div name="reference" t-if="o.po_number">
+                                        <strong>
+                                        <span t-field="o.po_number"/>
+                                        </strong>
+                                    </div>
+                                    <t t-if="o.customer_vat">
+                                        <strong>Customer VAT: </strong><span t-field="o.customer_vat"/>
+                                    </t>
+                                    <t t-if="o.partner_id.vat">
+                                        <strong>Customer VAT: </strong><span t-field="o.partner_id.vat"/>
+                                    </t>
+                                    <div class="mt16" t-if="o.responsible_id">
+                                        <span t-if="o.responsible_id">
+                                            <strong>Responsible: </strong>
+                                            <span t-if="o.responsible_id" t-field="o.responsible_id.name"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-6 text-justify">
+                                <div style="padding-left: 150px">
+                                    <strong>Supplier:</strong>
+                                </div>
+                                <div style="padding-left: 200px">
+                                    <span t-field="o.company_id.partner_id"
+                                        t-field-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}' /><br/>
+                                </div>
+                                <div style="padding-left: 150px">
+                                    <strong>Supplier VAT: </strong><span t-field="o.company_id.vat"/>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Is there a discount on at least one line? -->
+                        <t t-set="display_discount" t-value="any([l.discount for l in o.invoice_line_ids])"/>
+                        <table class="table-condensed" style="margin-left: 75px; margin-right: 75px; width: 795px">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-right">Quantity</th>
+                                    <th class="text-right">Unit Price</th>
+                                    <th t-if="display_discount" class="text-right" groups="sale.group_discount_per_so_line">Disc.(%)</th>
+                                    <th class="text-right">VAT</th>
+                                    <th class="text-right">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody class="invoice_tbody">
+                                <tr t-foreach="o.invoice_line_ids" t-as="l">
+                                    <td><span t-field="l.name"/></td>
+                                    <td class="text-right">
+                                        <t t-if="l.uom_id.id != 5">
+                                                <span t-esc="int(l.quantity)" />
+                                        </t>
+                                        <t t-if="l.uom_id.id == 5">
+                                                <span t-field="l.quantity" />
+                                        </t>
+                                        <span t-field="l.uom_id" groups="product.group_uom"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-field="l.price_unit" t-field-options='{"widget": "monetary", "display_currency": "o.currency_id"}'/>
+                                    </td>
+                                    <td t-if="display_discount" class="text-right" groups="sale.group_discount_per_so_line">
+                                        <span t-field="l.discount"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <t t-foreach="l.invoice_line_tax_ids" t-as="x">
+                                            <span t-esc="'%.0f'%x.amount"/>%
+                                        </t>
+                                        <!-- <span t-esc="', '.join(map(lambda x: (x.amount or x.name), l.invoice_line_tax_ids))"/> -->
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-field="l.price_subtotal"
+                                            t-field-options='{"widget": "monetary", "display_currency": "o.currency_id"}'/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="row" style="margin-right: 75px">
+                            <div class="col-xs-4 pull-right">
+                                <table class="table table-condensed">
+                                    <tr class="border-black">
+                                        <td><strong>Subtotal</strong></td>
+                                        <td class="text-right">
+                                            <span t-field="o.amount_untaxed" t-field-options='{"widget": "monetary", "display_currency": "o.currency_id"}'/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>VAT</strong></td>
+                                        <td class="text-right">
+                                            <span t-field="o.amount_tax"/>
+                                        </td>
+                                    </tr>
+                                    <t t-if="o.type != 'out_refund'">
+                                        <tr class="border-black">
+                                            <td><strong>Total</strong></td>
+                                            <td class="text-right">
+                                                <span t-field="o.amount_total" t-field-options='{"widget": "monetary", "display_currency": "o.currency_id"}'/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="o.type == 'out_refund'">
+                                        <tr class="border-black">
+                                            <td><strong>Total</strong></td>
+                                            <td class="text-right">
+                                                <span t-field="o.amount_total" t-field-options='{"widget": "monetary", "display_currency": "o.currency_id"}'/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-right: 75px" t-if="o.payment_ids">
+                            <div class="col-xs-4 pull-right">
+                                <table class="table">
+                                    <tr t-if="o.payment_ids" t-foreach="o.payment_ids" t-as="p">
+                                            <td class="text-right">Paid on <span t-field="p.payment_date" /></td>
+                                            <td class="text-right"><span t-field="p.amount" t-field-options='{"widget": "monetary", "display_currency": "p.currency_id"}'/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-right"><strong>Amount Due:</strong></td>
+                                        <td class="text-right"><span t-field="o.residual"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <!--<div class="row" t-if="o.partner_id.vat and 'IE' in o.partner_id.vat">
+                            <div class="col-xs-8">
+                                UK VAT Not Charged As Outside The Scope Of UK VAT, Please Apply The Reverse VAT Rule (Section 8.1.1) – Local Ire VAT Reg No: <span t-field="o.partner_id.vat"/>
+                            </div>
+                        </div>-->
+                        <!--<div class="row" t-if="o.tax_line_ids">
+                            <div class="col-xs-6">
+                                <table class="table table-condensed">
+                                    <thead>
+                                        <tr>
+                                            <th>VAT</th>
+                                            <th class="text-right">Base</th>
+                                            <th class="text-right">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="o.tax_line_ids" t-as="t">
+                                            <td><span t-field="t.name"/></td>
+                                            <td class="text-right">
+                                                <span t-field="t.base"
+                                                    t-field-options='{"widget": "monetary", "display_currency": "o.currency_id"}'/>
+                                            </td>
+                                            <td class="text-right">
+                                                <span t-field="t.amount"
+                                                    t-field-options='{"widget": "monetary", "display_currency": "o.currency_id"}'/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div> -->
+                        <div style="border-bottom: 1px solid black; width: 795px; margin-left: 75px; margin-top: 75px">
+                            <p class="mt64" t-if="o.type != 'out_refund'">
+                                <strong>Payment terms and conditions</strong><br/>
+                                <span t-if="o.comment" t-field="o.comment"/>
+                                <t t-if="o.payment_term_id">
+                                    <span t-field="o.payment_term_id.note"/>
+                                </t>
+                            </p>
+                            <p t-if="o.fiscal_position_id.note">
+                                <strong>Fiscal Position Remark:</strong>
+                                <span t-field="o.fiscal_position_id.note"/>
+                            </p>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </template>
+    </data>
+</openerp>

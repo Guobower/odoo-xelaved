@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <!--=====================================================================
+        === MODEL: Employee (hr.employee) =======================================
+        ======================================================================-->
+        <!-- Employee Form -->
+        <record model="ir.ui.view" id="qwarie_view_employee_form">
+            <field name="name">qwarie_view_employee_form</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='birthday']/parent::group" position="after">
+                    <group string="Social Accounts">
+                        <field name="facebook_account" widget="url"/>
+                        <field name="linkedin_account" widget="url"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</openerp>

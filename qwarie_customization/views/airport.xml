@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <!--=====================================================================
+        === MODEL: Airport (airport.airport) ====================================
+        ======================================================================-->
+        <!-- Airport Search -->
+        <record model="ir.ui.view" id="view_airport_search">
+            <field name="name">airport.search</field>
+            <field name="model">airport.airport</field>
+            <field name="arch" type="xml">
+                <search string="Search Airports">
+                    <field name="name"/>
+                    <field name="continent"/>
+                    <field name="iso_country"/>
+                    <field name="municipality"/>
+                    <field name="iata_code"/>
+                </search>
+            </field>
+        </record>
+
+    </data>
+</openerp>

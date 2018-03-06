@@ -1,0 +1,657 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!--=====================================================================
+        === MODEL: Event (event.event) ==========================================
+        ======================================================================-->
+        <!-- Event Kanban -->
+        <record model="ir.ui.view" id="qwarie_view_event_kanban">
+            <field name="name">qwarie_view_event_kanban</field>
+            <field name="model">event.event</field>
+            <field name="inherit_id" ref="event.view_event_kanban"/>
+            <field name="arch" type="xml">
+                <field name="seats_expected" position="after">
+                    <field name="event_service"/>
+                    <field name="trainer_id"/>
+                </field>
+                <xpath expr="//div[@class='o_event_left']" position="replace">
+                    <div class="o_event_left">
+                        <div class="o_day"><t t-esc="record.date_begin.raw_value.getDate()"/></div>
+                        <div>
+                            <t t-esc="moment(record.date_begin.raw_value).format('MMM')"/>
+                            <t t-esc="record.date_begin.raw_value.getFullYear()"/>
+                        </div>
+                        <hr style="margin:10px 0 6px 0;"/>
+                        <div class="o_day"><t t-esc="record.date_end.raw_value.getDate()"/></div>
+                        <div style="margin-bottom: 3px;">
+                            <t t-esc="moment(record.date_end.raw_value).format('MMM')"/>
+                            <t t-esc="record.date_end.raw_value.getFullYear()"/>
+                        </div>
+                    </div>
+                </xpath>
+                <xpath expr="//div[@class='o_event_right']" position="replace">
+                    <div class="o_event_right">
+                        <h4 style="font-size:15px">Training Course ID: <field name="qwarie_course_id"/></h4>
+                        <h4 style="font-size:15px"><field name="name"/></h4>
+                        <t t-if="record.event_service.raw_value"><b><field name="event_service"/></b><br/></t>
+                        <t t-if="record.customer_id.raw_value"><b>Customer: </b><field name="customer_id"/><br/></t>
+                        <t t-if="record.trainer_id.raw_value"><b>Trainer: </b><field name="trainer_id"/><br/></t>
+                        <t t-if="record.country_id.raw_value"><b><field name="country_id"/></b><br/></t>
+                        <h4>
+                            <a name="%(event.act_event_registration_from_event)d" type="action">
+                                <t t-esc="record.seats_expected.raw_value"> Expected attendees </t>
+                            </a>
+                        </h4>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="qwarie_view_event_kanban2">
+            <field name="name">qwarie_view_event_kanban</field>
+            <field name="model">event.event</field>
+            <field name="groups_id" eval="[(6,0,[ref('base.qwarie_training_overseer')])]"/>
+            <field name="inherit_id" ref="qwarie_customization.qwarie_view_event_kanban"/>
+            <field name="arch" type="xml">
+                <xpath expr="//kanban" position="attributes">
+                    <attribute name="default_order">date_begin DESC</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Event View -->
+        <record model="ir.ui.view" id="qwarie_custom_event_view">
+            <field name="name">qwarie_custom_event_view</field>
+            <field name="model">event.event</field>
+            <field name="inherit_id" ref="event_sale.view_event_form_inherit_ticket"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="replace">
+                    <form string="Trainings">
+                        <header>
+                            <button string="Confirm Training" name="button_confirm" states="draft" type="object" class="oe_highlight" groups="base.group_user"/>
+                            <button string="Finish Training" name="button_done" states="confirm" type="object" class="oe_highlight" groups="base.group_user"/>
+                            <button string="Set To Draft" name="button_draft" states="cancel,done" type="object" groups="base.group_user"/>
+                            <button string="Cancel Training" name="button_cancel" states="draft,confirm" type="object" groups="base.group_user"/>
+                            <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done"/>
+                        </header>
+                        <sheet>
+                            <div class="oe_button_box" name="button_box" groups="base.group_user">
+                                <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                                    <field name="active" widget="boolean_button" options='{"terminology": "archive"}'/>
+                                </button>
+                                <button name="%(event.act_event_registration_from_event)d" type="action" icon="fa-users"
+                                        class="oe_stat_button oe_event_attendee_button" help="Register with this event">
+                                    <field name="seats_expected" widget="statinfo" string="Attendees"/>
+                                </button>
+                            </div>
+                            <div class="oe_title">
+                                <label for="name" class="oe_edit_only" string="Training Name"/>
+                                <h1><field name="name" placeholder="Training Name" string="Training Name"/></h1>
+                            </div>
+                            <group name="main_field_group">
+                                <group>
+                                    <field name="qwarie_course_id" string="Training Course ID" groups="base.qwarie_basic"/>
+                                    <field name="event_type_id" string="Course Type" groups="base.qwarie_basic"/>
+                                    <field name="address_id" context="{'show_address': 1}" options='{"always_reload": True}' string="Venue"/>
+                                    <field name="event_service" groups="base.group_survey_user"/>
+                                    <field name="organizer_id" invisible="1"/>
+                                    <field name="trainer_id"/>
+                                    <field name="assistant_id"/>
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                </group>
+                                <group>
+                                    <field name="user_id" string="Coordinator"/>
+                                    <field name="delegate_quota" attrs="{'invisible':[('event_type_id','!=',2)]}" groups="base.qwarie_basic"/>
+                                    <field name="available_seats" attrs="{'invisible':[('event_type_id','!=',2)]}" groups="base.qwarie_basic"/>
+                                    <field name="date_begin"/>
+                                    <field name="date_end"/>
+                                    <field name="date_tz" />
+                                    <field name="training_subject" placeholder="What you write here will appear in Certificate"/>
+                                </group>
+                            </group>
+                            <notebook>
+                                <page string="Delegates" name='registrations'>
+                                    <group style="width: 600px">
+                                        <field name="training_leader"/>
+                                    </group>
+                                    <group>
+                                        <field name="registration_ids" string="Delegates" context="{'default_event_id': active_id}" nolabel="1">
+                                            <tree string="Registration">
+                                                <field name="create_date"/>
+                                                <field name="name"/>
+                                                <field name="email"/>
+                                                <field name="state" groups="base.group_no_one"/>
+                                                <button name="confirm_registration" string="Confirm Registration" states="draft" type="object" icon="gtk-apply" groups="base.group_no_one"/>
+                                                <button name="button_reg_close" string="Attended the Event" states="open" type="object" icon="gtk-jump-to" groups="base.group_no_one"/>
+                                                <button name="button_reg_cancel" string="Cancel Registration" states="draft,open" type="object" icon="gtk-cancel" groups="base.group_no_one"/>
+                                            </tree>
+                                        </field>
+                                    </group>
+                                </page>
+                                <page string="Print" groups="base.qwarie_basic">
+                                    <group>
+                                        <group string="Basic Information">
+                                            <field name="printing_company" widget="url"/>
+                                            <field name="order_number"/>
+                                            <field name="tracking_id"/>
+                                            <field name="tracking_link" widget="url"/>
+                                            <field name="order_copies_number"/>
+                                            <field name="ordered_date"/>
+                                            <field name="price"/>
+                                            <field name="ordered_by"/>
+                                            <field name="currency_id" invisible="1"/>
+                                            <field name="billed_to"/>
+                                            <field name="delivered_to"/>
+                                            <field name="responsible_person"/>
+                                            <field name="responsible_email"/>
+                                            <field name="proposed_delivery_date"/>
+                                            <field name="delivery_confirmed"/>
+                                        </group>
+                                        <group string="Configuration documents">
+                                            <field name="total_docs"/>
+                                            <field name="print_material_url" widget="url"/>
+                                            <field name="paper_size"/>
+                                            <field name="print_sides"/>
+                                            <field name="ink_colour"/>
+                                            <field name="paper_colour"/>
+                                            <field name="paper_finish"/>
+                                            <field name="paper_weight"/>
+                                            <field name="binding_type"/>
+                                            <field name="binding_color"/>
+                                            <field name="binding_position"/>
+                                            <field name="hole_punching"/>
+                                            <field name="folding"/>
+                                            <field name="protection"/>
+                                            <field name="cover"/>
+                                        </group>
+                                    </group>
+                                </page>
+                                <page string="CTU" groups="base.qwarie_basic">
+                                    <group style="width: 800px">
+                                        <field name="site_survey"/>
+                                        <field name="ctu_order" widget="radio"/>
+                                        <field name="ctu_number"/>
+                                        <field name="ctu_status"/>
+                                    </group>
+                                </page>
+                                <page string="Travel" groups="base.qwarie_basic">
+                                    <div class="oe_horizontal_separator oe_clear " style="width: 800px">Travel Arrangements</div>
+                                    <field name="travel_ids" widget="one2many_list"  context="{'default_event_id': active_id, 'default_company_id': company_id, 'default_currency_id': currency_id}"/>
+                                    <div class="oe_horizontal_separator oe_clear " style="width: 800px">Accommodation</div>
+                                    <field name="accommodation_ids" widget="one2many_list"  context="{'default_event_id': active_id, 'default_company_id': company_id, 'default_currency_id': currency_id}"/>
+                                </page>
+                                <page string="Certificates">
+                                    <div class="oe_horizontal_separator oe_clear " style="width: 800px; font-size: 16px;">Participants</div>
+                                    <div attrs="{'invisible': [('state','=','new')]}">
+                                    <field name="certificate_participants_ids" widget="one2many_list">
+                                        <tree edit="false" create="false" delete="true">
+                                            <field name="participant_name"/>
+                                            <field name="email"/>
+                                            <field name="state"/>
+                                            <field name="quizz_score" invisible="1"/>
+                                            <field name="quizz_score_percentage" string="Score (%)"/>
+                                            <field name="token" invisible="1"/>
+                                            <field name="promoted_condition"/>
+                                            <button name="certificate_print" string="Print Certificate" type="object" 
+                                                attrs="{'invisible':['&amp;','|',('quizz_score_percentage', 'in', ['1%','2%','3%','4%','5%','6%','7%','8%','9%']),('quizz_score_percentage', '&lt;', '70%'),('quizz_score_percentage', '!=', '100%')]}"/>
+                                            <button name="email_certificate" string="Email Certificate" type="object" class="email-survey" 
+                                                attrs="{'invisible':['&amp;','|',('quizz_score_percentage', 'in', ['1%','2%','3%','4%','5%','6%','7%','8%','9%']),('quizz_score_percentage', '&lt;', '70%'),('quizz_score_percentage', '!=', '100%')]}"/>
+                                            <button name="email_survey_again" string="Email Exam Again" type="object" class="email-survey-all" context="{'survey_type': 'exam'}"
+                                                confirm="Are you sure you want to email the exam again?" groups="base.qwarie_basic" 
+                                                attrs="{'invisible':['|','|','&amp;',('quizz_score_percentage', 'not in', ['1%','2%','3%','4%','5%','6%','7%','8%','9%']),('quizz_score_percentage', '&gt;=', '70%'),('state', 'in', ('new')),('quizz_score_percentage', '==', '100%')]}"/>
+                                        </tree>
+                                    </field>
+                                    </div>
+                                </page>
+                                <page string="Exam">
+                                    <group class="course_results">
+                                        <group>
+                                            <field name="exam_survey_id" domain="[('type', '=', 'exam'), ('is_active', '=', True)]" groups="base.qwarie_basic"/>
+                                        </group>
+                                    </group>
+                                    <div class="oe_horizontal_separator oe_clear " style="width: 800px; font-size: 16px;">Participants</div>
+                                    <div attrs="{'invisible': [('exam_survey_id', '=', False)]}">
+                                        <button name="view_exam_results" string="Course Exam Results" type="object"/>
+                                        <button name="email_survey" string="Email Exams to all" type="object" class="email-survey-all"
+                                            context="{'survey_type': 'exam'}" confirm="Are you sure you want to email the exam to everyone?" groups="base.qwarie_basic"/>
+                                    </div>
+                                    <field name="exam_survey_participants_ids" widget="one2many_list">
+                                        <tree edit="false" create="false" delete="true">
+                                            <field name="participant_name"/>
+                                            <field name="email"/>
+                                            <field name="state"/>
+                                            <field name="max_total_score" invisible="1"/>
+                                            <field name="quizz_score" invisible="1"/>
+                                            <field name="quizz_score_percentage" string="Score (%)"/>
+                                            <field name="email_sent" groups="base.qwarie_basic"/>
+                                            <field name="token" invisible="1"/>
+                                            <field name="survey_url" invisible="1"/>
+                                            <field name="survey_type" invisible="1"/>
+                                            <button name="email_survey" string="Email Exam" type="object" class="email-survey"
+                                                confirm="Are you sure you want email the exam?" groups="base.qwarie_basic"/>
+                                            <button name="clipboard" type='button' icon="fa-clipboard" string='Copy to clipboard' groups="base.qwarie_basic"/>
+                                            <button name="print_results" type='object' icon="fa-eye" string="View Delegate's Exam"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                                <page string="Feedback">
+                                    <group class="course_results">
+                                        <group>
+                                            <field name="feedback_survey_id" domain="[('type', '=', 'feedback'), ('is_active', '=', True)]" groups="base.qwarie_basic"/>
+                                        </group>
+                                        <group attrs="{'invisible': [('feedback_survey_id', '=', False)]}">
+                                            <button name="view_feedback_results" string="Course Feedback Results" type="object"/>
+                                        </group>
+                                    </group>
+                                    <div class="oe_horizontal_separator oe_clear " style="width: 800px; font-size: 16px;">Participants</div>
+                                    <div attrs="{'invisible': [('feedback_survey_id', '=', False)]}">
+                                        <button name="email_survey" string="Email Feedbacks" type="object" class="email-survey-all" groups="base.qwarie_basic"
+                                            context="{'survey_type': 'feedback'}" confirm="Are you sure you want to email the feedback to everyone?"/>
+                                    </div>
+                                    <field name="feedback_survey_participants_ids" widget="one2many_list">
+                                        <tree edit="false" create="false" delete="true" editable="bottom">
+                                            <field name="participant_name"/>
+                                            <field name="email"/>
+                                            <field name="state"/>
+                                            <field name="email_sent" groups="base.qwarie_basic"/>
+                                            <field name="token" invisible="1"/>
+                                            <field name="survey_url" invisible="1"/>
+                                            <field name="survey_type" invisible="1"/>
+                                            <button name="email_survey" string="Email Feedback" type="object" class="email-survey"
+                                                confirm="Are you sure you want email the feedback?" groups="base.qwarie_basic"/>
+                                            <button name="clipboard" type='button' icon="fa-clipboard" string='Copy to clipboard' groups="base.qwarie_basic"/>
+                                            <button name="print_results" type='object' icon="fa-eye" string="View Delegate's Feedback"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                                <page string="Notes" groups="base.qwarie_basic">
+                                    <field name="note_ids" widget="one2many_list"  context="{'default_event_id': active_id}"/>
+                                </page>
+                                <page string="Email Schedule" groups="base.group_no_one">
+                                    <group>
+                                        <field name="reply_to"/>
+                                    </group>
+                                    <field name="event_mail_ids">
+                                        <tree string="Email Schedule" editable="bottom">
+                                            <field name="sequence" widget="handle"/>
+                                            <field name="template_id" />
+                                            <field name="interval_nbr" attrs="{'readonly':[('interval_unit','=','now')]}"/>
+                                            <field name="interval_unit"/>
+                                            <field name="interval_type"/>
+                                            <field name="done"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                                <page string="Training Materials" groups="base.qwarie_basic">
+                                    <group>
+                                        <label for="attachment_ids"/>
+                                        <div>
+                                            <field name="attachment_ids"  widget="many2many_binary" string="Attach a file" colspan="3"/>
+                                        </div>
+                                    </group>
+                                </page>
+                            </notebook>
+                        </sheet>
+                        <div class="oe_chatter" groups="base.qwarie_basic">
+                            <field name="message_follower_ids" widget="mail_followers" groups="base.qwarie_basic"/>
+                            <field name="message_ids" widget="mail_thread" groups="base.qwarie_basic"/>
+                        </div>
+                    </form>
+                </xpath>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="qwarie_custom_event_customer_view">
+            <field name="name">qwarie_custom_event_customer_view</field>
+            <field name="model">event.event</field>
+            <field name="inherit_id" ref="qwarie_customization.qwarie_custom_event_view"/>
+            <field name="groups_id" eval="[(4, ref('base.qwarie_training_overseer'))]"/>
+            <field name="arch" type="xml">
+                <field name="attachment_ids" position="replace"></field>
+                <field name="state" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+                <field name="address_id" position="attributes">
+                    <attribute name="options">{'no_open': True}</attribute>
+                </field>
+                <field name="trainer_id" position="attributes">
+                    <attribute name="options">{'no_open': True}</attribute>
+                </field>
+                <field name="assistant_id" position="attributes">
+                    <attribute name="options">{'no_open': True}</attribute>
+                </field>
+                <field name="user_id" position="attributes">
+                    <attribute name="options">{'no_open': True}</attribute>
+                </field>
+            </field>
+        </record>
+
+        <!-- Event Search -->
+        <record model="ir.ui.view" id="view_event_search">
+            <field name="name">event.event.search</field>
+            <field name="model">event.event</field>
+            <field name="inherit_id" ref="event.view_event_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//search" position="replace">
+                    <search string="Events">
+                        <field name="name" string="Trainings"/>
+                        <filter string="Unread Messages" name="message_needaction" domain="[('message_needaction','=',True)]" groups="base.group_system"/>
+                        <separator/>
+                        <filter string="Unconfirmed" name="draft" domain="[('state','=','draft')]" help="Events in New state" groups="base.group_system"/>
+                        <filter string="Confirmed" domain="[('state','=','confirm')]" help="Confirmed events" groups="base.group_system"/>
+                        <separator/>
+                        <filter string="My Events" help="My Events" domain="[('user_id','=',uid)]" groups="base.group_system"/>
+                        <separator/>
+                        <filter string="Upcoming" name="upcoming" groups="base.group_system"
+                            domain="['&amp;', ('state', '!=', 'cancel'), ('date_begin','&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0)))]" help="Upcoming events from today" />
+                        <field name="event_type_id" />
+                        <field name="user_id"/>
+                        <separator/>
+                        <filter string="Archived" name="inactive" domain="[('active','=',False)]"/>
+                        <group expand="0" string="Group By">
+                            <filter string="Responsible" context="{'group_by': 'user_id'}"/>
+                            <filter string="Event Type" context="{'group_by':'event_type_id'}"/>
+                            <filter string="Status" context="{'group_by':'state'}"/>
+                            <filter string="Start Month" domain="[]" context="{'group_by':'date_begin'}"/>
+                        </group>
+                    </search>
+                </xpath>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MODEL: Event Registration (event.registration) ======================
+        ======================================================================-->
+        <!-- Event Registration Form -->
+        <record model="ir.ui.view" id="view_event_registration_ticket_form">
+            <field name="name">event.registration.form</field>
+            <field name="model">event.registration</field>
+            <field name="inherit_id" ref="event_sale.view_event_registration_ticket_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="replace">
+                    <form string="Training Registration">
+                        <header groups="base.group_system">
+                            <button name="action_send_badge_email" string="Send by Email" type="object" states="open,done" class="oe_highlight"/>
+                            <button name="confirm_registration" string="Confirm" states="draft" type="object" class="oe_highlight"/>
+                            <button name="button_reg_close" string="Attended" states="open" type="object" class="oe_highlight"/>
+                            <button string="Set To Unconfirmed" name="do_draft" states="cancel,done" type="object" />
+                            <button name="button_reg_cancel" string="Cancel Registration" states="draft,open" type="object"/>
+                            <field name="state" nolabel="1" colspan="2" widget="statusbar" statusbar_visible="draft,open,done"/>
+                        </header>
+                        <sheet string="Registration">
+                            <group>
+                                <group string="Attendee" name="attendee">
+                                    <field name="name"/>
+                                    <field name="phone"/>
+                                    <field name="email"/>
+                                    <field name="partner_id" attrs="{'readonly':[('state', '!=', 'draft')]}" invisible="1"/>
+                                </group>
+                                <group string="Event Information" name="event">
+                                    <field name="event_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                    <field name="date_open" groups="base.group_no_one"/>
+                                    <field name="date_closed" groups="base.group_no_one"/>
+                                </group>
+                            </group>
+                        </sheet>
+                        <div class="oe_chatter" groups="base.qwarie_basic">
+                            <field name="message_follower_ids" widget="mail_followers" groups="base.qwarie_basic"/>
+                            <field name="message_ids" widget="mail_thread" groups="base.qwarie_basic"/>
+                        </div>
+                    </form>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Event Registration Tree -->
+        <record model="ir.ui.view" id="view_event_registration_ticket_tree">
+            <field name="name">event.registration.ticket.tree</field>
+            <field name="model">event.registration</field>
+            <field name="inherit_id" ref="event_sale.view_event_registration_ticket_tree" />
+            <field name="arch" type="xml">
+                <xpath expr="//tree" position="replace">
+                    <tree string="Delegates" decoration-bf="message_needaction==True">
+                        <field name="create_date" groups="base.qwarie_basic"/>
+                        <field name="partner_id" groups="base.qwarie_basic"/>
+                        <field name="name"/>
+                        <field name="email"/>
+                        <field name="event_id" />
+                        <field name="state"/>
+                        <field name="message_needaction" invisible="1"/>
+                        <button name="confirm_registration" string="Confirm Registration" states="draft" type="object" icon="gtk-apply" groups="base.group_system"/>
+                        <button name="button_reg_close" string="Attended the Event" states="open" type="object" icon="gtk-jump-to" groups="base.group_system"/>
+                        <button name="button_reg_cancel" string="Cancel Registration" states="draft,open" type="object" icon="gtk-cancel" groups="base.group_system"/>
+                    </tree>
+                </xpath>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MODEL: Event Travel (event.travel) ==================================
+        ======================================================================-->
+        <!-- Event Travel Tree -->
+        <record model="ir.ui.view" id="travel_tree_view">
+            <field name="name">travel.tree</field>
+            <field name="model">event.travel</field>
+            <field name="arch" type="xml">
+                <tree string="Travel Arrangements">
+                    <field name="travel_by"/>
+                    <field name="travel_departure_time" string="Departure (OUTBD) / Picking Up"/>
+                    <field name="travel_arrival_time" string="Arrival (OUTBD)"/>
+                    <field name="inbound_travel_departure_time" string="Departure (INB)"/>
+                    <field name="inbound_travel_arrival_time" string="Arrival (INB) / Dropping off"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Event Travel Form -->
+        <record model="ir.ui.view"  id="travel_form_view" >
+            <field name="name">travel.form</field>
+            <field name="model">event.travel</field>
+            <field name="arch" type="xml">
+                <form string="Travel Arrangements">
+                    <group style="widget:100%;">
+                        <group>
+                            <field name="event_id"/>
+                            <field name="travel_by"/>
+                            <field name="rail_discount" attrs="{'invisible':[('travel_by', 'not in', ['rail'])]}"/>
+                        </group>
+                        <group>
+                            <field name="travel_cost"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="travel_type"/>
+                        </group>
+                    </group>
+                    <group attrs="{'invisible':[('travel_by', '=', False)]}" col="3" class="travel-arr" style="max-width: 600px;">
+                        <separator string="Outbound Flight" colspan="3" attrs="{'invisible':[('travel_by', '!=', 'air')]}"/>
+                        <separator string="Outbound ride" colspan="3" attrs="{'invisible':[('travel_by', 'not in', ['rail', 'car_private'])]}"/>
+                        <separator string="Rental Car" colspan="3" attrs="{'invisible':[('travel_by', '!=', 'car_rental')]}"/>
+                        <field name="outbound_carrier"  colspan="3" attrs="{'invisible':[('travel_by', '!=', 'air')]}"/>
+                        <field name="outbound_flight_number"  colspan="3" attrs="{'invisible':[('travel_by', '!=', 'air')]}"/>
+                        <field name="outbound_departure_airport_id"  colspan="3" attrs="{'invisible':[('travel_by', '!=', 'air')]}"/>
+                        <field name="outbound_arrival_airport_id"  colspan="3" attrs="{'invisible':[('travel_by', '!=', 'air')]}"/>
+                        <field name="outbound_last_checkin"  colspan="3" attrs="{'invisible':[('travel_by', '!=', 'air')]}"/>
+                        <field name="outbound_from" colspan="3" attrs="{'invisible':[('travel_by', 'not in', ['rail', 'car_private'])]}"/>
+                        <field name="outbound_to"  colspan="3" attrs="{'invisible':[('travel_by', 'not in', ['rail', 'car_private'])]}"/>
+                        <div class="oe_form_group_cell_travel_label" colspan="1">
+                            <label for="travel_departure_time" string="Departure Time" attrs="{'invisible':[('travel_by', '=', 'car_rental')]}" class="oe_inline"/>
+                            <label for="travel_departure_time" string="Piking up" attrs="{'invisible':[('travel_by', '!=', 'car_rental')]}" class="oe_inline"/>
+                        </div>
+                        <field name="travel_departure_time" nolabel="1" colspan="2"/>
+                        <field name="travel_arrival_time" colspan="3" attrs="{'invisible':[('travel_by', '!=', 'air')]}"/>
+                        <field name="outbound_rail_class" colspan="3" attrs="{'invisible':[('travel_by', '!=', 'rail')]}"/>
+
+                        <separator string="Inbound Flight" colspan="3" attrs="{'invisible':[('travel_by', '!=', 'air')]}"/>
+                        <separator string="Inbound ride" colspan="3" attrs="{'invisible':[('travel_by', 'not in', ['rail', 'car_private'])]}"/>
+                        <field name="inbound_carrier" colspan="3" attrs="{'invisible':[('travel_by', '!=', 'air')]}"/>
+                        <field name="inbound_flight_number"  colspan="3" attrs="{'invisible':[('travel_by', '!=', 'air')]}"/>
+                        <field name="inbound_departure_airport_id" colspan="3" attrs="{'invisible':[('travel_by', '!=', 'air')]}"/>
+                        <field name="inbound_arrival_airport_id" colspan="3" attrs="{'invisible':[('travel_by', '!=', 'air')]}"/>
+                        <field name="inbound_from" colspan="3" attrs="{'invisible':[('travel_by', 'not in', ['rail', 'car_private'])]}"/>
+                        <field name="inbound_to" colspan="3" attrs="{'invisible':[('travel_by', 'not in', ['rail', 'car_private'])]}"/>
+                        <field name="inbound_last_checkin" colspan="3" attrs="{'invisible':[('travel_by', '!=', 'air')]}"/>
+                        <field name="inbound_travel_departure_time" colspan="3" attrs="{'invisible':[('travel_by', '=', 'car_rental')]}"/>
+                        <div class="oe_form_group_cell_travel_label" colspan="1" attrs="{'invisible':[('travel_by', 'not in', ['air', 'car_rental'])]}">
+                            <label for="inbound_travel_arrival_time" string="Arrival Time" attrs="{'invisible':[('travel_by', '!=', 'air')]}" class="oe_inline"/>
+                            <label for="inbound_travel_arrival_time" string="Dropping off" attrs="{'invisible':[('travel_by', '!=', 'car_rental')]}" class="oe_inline"/>
+                        </div>
+                        <field name="inbound_travel_arrival_time" nolabel="1" attrs="{'invisible':[('travel_by', 'not in', ['air', 'car_rental'])]}" colspan="2" class="oe_inline"/>
+                        <field name="inbound_rail_class" colspan="3" attrs="{'invisible':[('travel_by', '!=', 'rail')]}"/>
+                        <field name="car_type" colspan="3" attrs="{'invisible':[('travel_by', '!=', 'car_rental')]}"/>
+                        <field name="car_company" colspan="3" attrs="{'invisible':[('travel_by', '!=', 'car_rental')]}"/>
+                    </group>
+                    <separator string="Notes" colspan="2"/>
+                    <field name="travel_notes" nolabel="1"/>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MODEL: Event Accommodation (event.accommodation) ====================
+        ======================================================================-->
+        <!-- Event Accommodation Tree -->
+        <record model="ir.ui.view" id="accommodation_tree_view">
+            <field name="name">accommodation.tree</field>
+            <field name="model">event.accommodation</field>
+            <field name="arch" type="xml">
+                <tree string="Accommodation">
+                    <field name="accommodation_type"/>
+                    <field name="accommodation_name"/>
+                    <field name="accommodation_check_in"/>
+                    <field name="accommodation_check_out"/>
+                    <field name="accommodation_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="accommodation_status"/>
+                    <field name="accommodation_notes"/>
+                    <field name="currency_id" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Event Accommodation Form -->
+        <record model="ir.ui.view" id="accommodation_form_view">
+            <field name="name">accommodation.form</field>
+            <field name="model">event.accommodation</field>
+            <field name="arch" type="xml">
+                <form string="Accommodation">
+                    <group>
+                        <group>
+                            <field name="event_id"/>
+                            <field name="accommodation_type"/>
+                            <field name="accommodation_name"/>
+                            <field name="accommodation_price"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="accommodation_status"/>
+                            <field name="accommodation_check_in"/>
+                            <field name="accommodation_check_out"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="accommodation_notes"/>
+                    </group>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MODEL: Event Notes (event.notes) ====================================
+        ======================================================================-->
+        <!-- Event Notes Tree -->
+        <record model="ir.ui.view" id="notes_tree_view">
+            <field name="name">notes.tree</field>
+            <field name="model">event.notes</field>
+            <field name="arch" type="xml">
+                <tree string="Notes" class="event_notes">
+                    <field name="create_date" string="Date"/>
+                    <field name="create_uid" string="Added by" />
+                    <field name="description" string="Note"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Event Notes Form -->
+        <record model="ir.ui.view" id="notes_form_view">
+            <field name="name">notes.form</field>
+            <field name="model">event.notes</field>
+            <field name="arch" type="xml">
+                <form string="Notes">
+                    <group>
+                        <field name="event_id"/>
+                    </group>
+                    <group>
+                        <field name="description" string="Note"/>
+                    </group>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === TEMPLATES ===========================================================
+        ======================================================================-->
+        <!-- Event registration email template -->
+        <record  model="mail.template" id="training_subscription">
+            <field name="name">Training subscription</field>
+            <field name="model_id" ref="event.model_event_registration"/>
+            <field name="email_from">${(object.event_id.organizer_id.email or object.event_id.user_id.email or '')|safe}</field>
+            <field name="email_to" >${object.email|safe}</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="reply_to">${object.event_id.reply_to|safe}</field>
+            <field name="subject">Your subscription at ${object.event_id.name}</field>
+            <field name="body_html"><![CDATA[<p>Hello ${object.name},</p>
+<p>Qwarie confirms that you have been assigned to attend the ${object.event_id.name}, starting on ${object.event_id.date_begin} until ${object.event_id.date_end} inclusive.
+<p>Your contact for this training is ${object.event_id.user_id.name}, ${object.event_id.user_id.email}</p>
+<p>Thank you for your participation!</p>
+<p>Best regards</p>
+<p>${object.event_id.user_id.name}<br/>Qwarie Training Co-ordinator</p>]]></field>
+        </record>
+
+        <!--=====================================================================
+        === WINDOW ACTIONS (ir.actions.act_window) ==============================
+        ======================================================================-->
+        <!-- Event Menu Action. -->
+        <!-- Change 'Events' string to 'Trainings'.
+             Disable only upcoming events. -->
+        <record model="ir.actions.act_window" id="event.action_event_view">
+            <field name="context">{"search_default_upcoming":0}</field>
+        </record>
+
+        <!-- Training Menu Action for customer Training portal access -->
+        <record model="ir.actions.act_window" id="action_training_kanban">
+            <field name="name">Trainings</field>
+            <field name="res_model">event.event</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="view_id" ref="qwarie_customization.qwarie_custom_event_view"/>
+            <field name="domain"></field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">You have no trainings scheduled</p>
+            </field>
+        </record>
+
+        <!--=====================================================================
+        === MENU ITEMS (ir.ui.menu) =============================================
+        ======================================================================-->
+        <!-- Events Menu rearrangement -->
+        <record model="ir.ui.menu" id="event.event_main_menu" >
+            <field name="sequence">2</field>
+            <field name="groups_id" eval="[(4, [ref('base.qwarie_basic')])]"/>
+        </record>
+
+        <!-- Training Menu for customer Training portal access -->
+        <menuitem name="Training" id="menu_trainings" sequence="1" groups="base.qwarie_training_overseer" web_icon="survey,static/description/icon.png"/>
+        <menuitem name="Training" id="menu_trainings_submenu" parent="menu_trainings" sequence="1" groups="base.qwarie_training_overseer"/>
+        <menuitem name="Training" id="menu_trainings_kanban" action="action_training_kanban" parent="menu_trainings_submenu" sequence="1" groups="base.qwarie_training_overseer"/>
+
+    </data>
+</openerp>
